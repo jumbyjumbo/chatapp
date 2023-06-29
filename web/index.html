@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base href="$FLUTTER_BASE_HREF" />
+
+    <meta charset="UTF-8" />
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+    <meta name="description" content="A new Flutter project." />
+
+    <!-- iOS meta tags & icons -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta
+      name="apple-mobile-web-app-title"
+      content="pleasepleasepleaseplease"
+    />
+    <link rel="apple-touch-icon" href="icons/Icon-192.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <title>pleasepleasepleaseplease</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <script>
+      // The value below is injected by flutter build, do not touch.
+      var serviceWorkerVersion = null;
+    </script>
+
+    <!-- Add your custom style here -->
+    <style>
+      body {
+        background-color: black;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: white;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+      }
+    </style>
+
+    <!-- This script adds the flutter initialization JS code -->
+    <script src="flutter.js" defer></script>
+  </head>
+  <body>
+    <!-- Add your custom loader here -->
+    <div id="loader">Loading...</div>
+
+    <script>
+      function removeLoadingScreen() {
+        document.getElementById("loader").remove();
+      }
+
+      window.addEventListener("load", function (ev) {
+        // Download and execute main.dart.js manually
+        var script = document.createElement("script");
+        script.src = "main.dart.js";
+        script.onload = function () {
+          // Initialize the Flutter engine manually
+          let engineInitializer = _flutter.engineInitializer;
+          engineInitializer.initializeEngine().then(function (appRunner) {
+            appRunner.runApp();
+            // Remove the loading screen
+            removeLoadingScreen();
+          });
+        };
+        document.body.appendChild(script);
+      });
+    </script>
+  </body>
+</html>
