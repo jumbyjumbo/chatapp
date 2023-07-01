@@ -47,9 +47,7 @@ class MyApp extends StatelessWidget {
             }
           } else {
             // Show nothing
-            return Container(
-              color: Colors.transparent,
-            );
+            return const SizedBox.shrink();
           }
         },
       ),
