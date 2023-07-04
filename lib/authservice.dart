@@ -52,6 +52,7 @@ class AuthService {
 
     // Function to add the first message from the chatbot
     Future<String> addFirstMsg(String conversationUID) async {
+      final DateTime now = DateTime.now(); // creates a new timestamp
       DocumentReference message = await FirebaseFirestore.instance
           .collection('globalConvos')
           .doc(conversationUID)
@@ -60,24 +61,28 @@ class AuthService {
         'sender': "chatbot",
         'content':
             "Hi! I'm the chatbot. I'm here to help you get started with your new account. You can start by adding friends and chatting with them!",
-        'timestamp': FieldValue.serverTimestamp(),
+        'timestamp': now,
       });
       return message.id;
     }
 
     // create the default conversation for the user with the chatbot
     Future<String> createConversation(String name, String convoPicture) async {
+      final DateTime now = DateTime.now(); // creates a new timestamp
+
       DocumentReference conversationDoc =
           await FirebaseFirestore.instance.collection('globalConvos').add({
         'name': name,
         'members': [user.uid, "chatbot"],
         'convoPicture': convoPicture,
+        'lastmessagetimestamp': now,
       });
       //create first message from bot
       String lastMsg = await addFirstMsg(conversationDoc.id);
       //make it the last msg sent
       await conversationDoc.update({
         'lastMessage': lastMsg,
+        'lastmessagetimestamp': now,
       });
 
       return conversationDoc.id;

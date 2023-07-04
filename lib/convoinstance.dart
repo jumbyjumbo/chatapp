@@ -56,7 +56,7 @@ class MessagesState extends State<ConvoInstance> {
         FirebaseFirestore.instance.collection('users').doc(userId).get());
   }
 
-  //build the list of ConvoInstance
+  //build the list of messages
   Widget buildMessageList() {
     return StreamBuilder<QuerySnapshot>(
       //stream ConvoInstance of conversation from firestore
@@ -72,7 +72,7 @@ class MessagesState extends State<ConvoInstance> {
         if (snapshot.connectionState == ConnectionState.waiting ||
             !snapshot.hasData) {
           //show nothing
-          return Container(color: Colors.transparent);
+          return const SizedBox.shrink();
         }
         return ListView(
           reverse: true,
@@ -141,7 +141,7 @@ class MessagesState extends State<ConvoInstance> {
                 borderRadius: BorderRadius.circular(25.0),
                 border: Border.all(
                   color: CupertinoColors.inactiveGray,
-                  width: 0.0,
+                  width: 0.5,
                 ),
               ),
             ),
@@ -158,6 +158,9 @@ class MessagesState extends State<ConvoInstance> {
 //send a msg from the current user
   void sendMessage() {
     if (msgController.text.isNotEmpty) {
+      final DateTime now = DateTime.now(); // creates a new timestamp
+
+      //add the message to the conversation
       FirebaseFirestore.instance
           .collection('globalConvos')
           .doc(widget.conversationId)
@@ -165,7 +168,7 @@ class MessagesState extends State<ConvoInstance> {
           .add({
         'sender': user.uid,
         'content': msgController.text,
-        'timestamp': FieldValue.serverTimestamp(),
+        'timestamp': now,
       }).then((value) {
         //update the last message sent in the conversation
         FirebaseFirestore.instance
@@ -173,6 +176,7 @@ class MessagesState extends State<ConvoInstance> {
             .doc(widget.conversationId)
             .update({
           'lastMessage': value.id,
+          'lastmessagetimestamp': now, // updates the lastmessagetimestamp field
         });
       });
 

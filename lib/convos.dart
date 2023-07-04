@@ -64,6 +64,16 @@ class ConvoListState extends State<ConvoList> {
     // ignore: unused_local_variable
     double screenHeightUnit = screenHeight * 0.01;
 
+    Stream<QuerySnapshot> conversationsStream = FirebaseFirestore.instance
+        .collection('globalConvos')
+        .where('members',
+            arrayContains: user
+                .uid) // Filter conversations where the user is a participant
+        .orderBy('lastmessagetimestamp',
+            descending:
+                true) // Order conversations by last message timestamp in descending order
+        .snapshots();
+
     return CupertinoPageScaffold(
       //top menu bar
       navigationBar: CupertinoNavigationBar(
@@ -126,6 +136,18 @@ class ConvoListState extends State<ConvoList> {
               },
             ),
 
+            //profile button
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Icon(
+                CupertinoIcons.profile_circled,
+                color: CupertinoColors.activeBlue,
+              ),
+              onPressed: () {
+                // profile button functionality goes here TODO
+              },
+            ),
+
             //logout button
             CupertinoButton(
               padding: EdgeInsets.zero,
@@ -141,62 +163,44 @@ class ConvoListState extends State<ConvoList> {
           ],
         ),
       ),
-      child: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .snapshots(),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: conversationsStream,
         builder: (context, snapshot) {
           //if snapshot is loading or has no data, show nothing
           if (snapshot.connectionState == ConnectionState.waiting ||
               !snapshot.hasData) {
             //show nothing
-            return Container(color: Colors.transparent);
+            return const SizedBox.shrink();
           }
 
-          // Get list of conversation IDs
-          List<String> conversationIds =
-              List<String>.from(snapshot.data?['convos'] ?? []);
+          // Get the documents of the conversations
+          List<QueryDocumentSnapshot> conversations = snapshot.data!.docs;
 
+          //convo list
           return ListView.builder(
-            itemCount: conversationIds.length,
-            itemBuilder: (context, index) {
-              return StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('globalConvos')
-                    .doc(conversationIds[index])
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  //if snapshot is loading or has no data, show nothing
-                  if (snapshot.connectionState == ConnectionState.waiting ||
-                      !snapshot.hasData) {
-                    //show nothing
-                    return Container(color: Colors.transparent);
-                  }
+            itemCount: conversations.length,
+            itemBuilder: (BuildContext context, int index) {
+              QueryDocumentSnapshot conversationDoc = conversations[index];
+              Map<String, dynamic> conversationData =
+                  conversationDoc.data() as Map<String, dynamic>;
 
-                  // Get conversation data
-                  Map<String, dynamic> convoData =
-                      snapshot.data?.data() as Map<String, dynamic>;
-                  //open convo on tap
-                  return GestureDetector(
-                    onTap: () {
-                      // Open conversation
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ConvoInstance(
-                            conversationId: conversationIds[index],
-                            conversationData: convoData,
-                          ),
-                        ),
-                      );
-                    },
-                    child: _buildConvoWidget(
-                      convoData,
-                      conversationIds[index],
+              return GestureDetector(
+                onTap: () {
+                  // Open conversation
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConvoInstance(
+                        conversationId: conversationDoc.id,
+                        conversationData: conversationData,
+                      ),
                     ),
                   );
                 },
+                child: _buildConvoWidget(
+                  conversationData,
+                  conversationDoc.id,
+                ),
               );
             },
           );
