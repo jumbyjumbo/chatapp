@@ -85,22 +85,23 @@ class ConvoListState extends State<ConvoList> {
               .snapshots(),
           builder:
               (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-            if (snapshot.hasData) {
-              return FittedBox(
-                fit: BoxFit.contain,
-                child: Text(snapshot.data!['name'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    )),
-              );
-            } else {
-              return Container(
-                color: Colors.transparent,
-              );
+            //if snapshot is loading or has no data, show nothing
+            if (snapshot.connectionState == ConnectionState.waiting ||
+                !snapshot.hasData) {
+              //show nothing
+              return const SizedBox.shrink();
             }
+            //display user's name
+            return FittedBox(
+              fit: BoxFit.contain,
+              child: Text(snapshot.data!['name'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  )),
+            );
           },
         ),
-
+        //buttons on the right side of the top menu bar
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -163,6 +164,7 @@ class ConvoListState extends State<ConvoList> {
           ],
         ),
       ),
+      //convo list
       child: StreamBuilder<QuerySnapshot>(
         stream: conversationsStream,
         builder: (context, snapshot) {
@@ -245,8 +247,8 @@ class ConvoListState extends State<ConvoList> {
         padding: EdgeInsets.all(
           screenHeightUnit,
         ),
-        //convo instance display
 
+        //convo instance display
         child: Row(
           children: [
             CircleAvatar(
