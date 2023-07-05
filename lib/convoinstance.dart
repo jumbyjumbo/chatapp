@@ -19,7 +19,7 @@ class ConvoInstance extends StatefulWidget {
 }
 
 class MessagesState extends State<ConvoInstance> {
-  //currently logged in user
+  //signed in user
   late User user;
 
   //controller for the message text field
@@ -29,16 +29,21 @@ class MessagesState extends State<ConvoInstance> {
   @override
   void initState() {
     super.initState();
+    //get the current user
     user = FirebaseAuth.instance.currentUser!;
   }
 
   // 2. UI
   @override
   Widget build(BuildContext context) {
+    //page scaffold
     return CupertinoPageScaffold(
+      //top navigation bar
       navigationBar: CupertinoNavigationBar(
+        //display conversation's name
         middle: Text(widget.conversationData['name']),
       ),
+      //body (messages list/column)
       child: Column(
         children: [
           Expanded(
@@ -53,6 +58,7 @@ class MessagesState extends State<ConvoInstance> {
 // 3. Logic for interacting with the database
   Stream<DocumentSnapshot> getUserData(String userId) {
     return Stream.fromFuture(
+        //get user data from firestore with his uid
         FirebaseFirestore.instance.collection('users').doc(userId).get());
   }
 
@@ -74,12 +80,15 @@ class MessagesState extends State<ConvoInstance> {
           //show nothing
           return const SizedBox.shrink();
         }
+        //actual message list
         return ListView(
           reverse: true,
+          //map each message to a widget
           children: snapshot.data!.docs.map((DocumentSnapshot document) {
             Map<String, dynamic> data =
                 document.data()! as Map<String, dynamic>;
             return StreamBuilder<DocumentSnapshot>(
+              //get the msg sender's data
               stream: getUserData(data['sender']),
               builder: (BuildContext context,
                   AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -87,32 +96,36 @@ class MessagesState extends State<ConvoInstance> {
                 if (snapshot.connectionState == ConnectionState.waiting ||
                     !snapshot.hasData) {
                   //show nothing
-                  return Container(color: Colors.transparent);
+                  return const SizedBox.shrink();
                 }
                 //get user data
                 Map<String, dynamic> userData =
                     snapshot.data!.data()! as Map<String, dynamic>;
-                //build message
+                //message padding
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
+                  //message row
                   child: Row(
                     children: [
+                      //message sender's  profile picture
                       CircleAvatar(
-                        backgroundImage:
-                            NetworkImage(userData['profilepicture']),
-                        backgroundColor: Colors.transparent,
+                        backgroundImage: NetworkImage(userData[
+                            'profilepicture']), //get the profile picture from the user data
+                        backgroundColor: Colors.transparent, // no pp background
                       ),
                       const SizedBox(
                           width:
-                              10), // gives some spacing between the avatar and the texts
+                              10), // gives some spacing between the pp and the message content
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
+                            //message sender's name
                             userData['name'],
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
+                          //message content
                           Text(data['content']),
                         ],
                       ),
@@ -130,15 +143,19 @@ class MessagesState extends State<ConvoInstance> {
 //build the chat text field and send button
   Widget buildMessageSender() {
     return Container(
+      //padding for the text field and send button
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: <Widget>[
           Expanded(
+            //text field
             child: CupertinoTextField(
+              //handle the msg content to be sent by current user
               controller: msgController,
               placeholder: "Send a message...",
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25.0),
+                //border around the text field
                 border: Border.all(
                   color: CupertinoColors.inactiveGray,
                   width: 0.5,
