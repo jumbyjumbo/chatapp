@@ -98,7 +98,9 @@ class MessagesState extends State<ConvoInstance> {
                 if (snapshot.connectionState == ConnectionState.waiting ||
                     !snapshot.hasData) {
                   //show nothing
-                  return const SizedBox.shrink();
+                  return Container(
+                    color: Colors.transparent,
+                  );
                 }
                 // If message is not from chatbot
                 if (data['sender'] != 'chatbot') {
