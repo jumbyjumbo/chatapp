@@ -1,3 +1,4 @@
+import 'package:dart_openai/dart_openai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +63,7 @@ class MessagesState extends State<ConvoInstance> {
         FirebaseFirestore.instance.collection('users').doc(userId).get());
   }
 
-  //build the list of messages
+//build the list of messages
   Widget buildMessageList() {
     return StreamBuilder<QuerySnapshot>(
       //stream ConvoInstance of conversation from firestore
@@ -80,6 +81,7 @@ class MessagesState extends State<ConvoInstance> {
           //show nothing
           return const SizedBox.shrink();
         }
+
         //actual message list
         return ListView(
           reverse: true,
@@ -97,6 +99,10 @@ class MessagesState extends State<ConvoInstance> {
                     !snapshot.hasData) {
                   //show nothing
                   return const SizedBox.shrink();
+                }
+                // If message is not from chatbot
+                if (data['sender'] != 'chatbot') {
+                  // Generate response and send it TODO
                 }
                 //get user data
                 Map<String, dynamic> userData =
@@ -199,5 +205,61 @@ class MessagesState extends State<ConvoInstance> {
 
       msgController.clear();
     }
+  }
+
+//send chatbot messages
+  Future<void> sendBotResponse(String message) async {
+    final DateTime now = DateTime.now(); // creates a new timestamp
+
+    //add the message to the conversation
+    FirebaseFirestore.instance
+        .collection('globalConvos')
+        .doc(widget.conversationId)
+        .collection('messages')
+        .add({
+      'sender': 'chatbot',
+      'content': message,
+      'timestamp': now,
+    }).then((value) {
+      //update the last message sent in the conversation
+      FirebaseFirestore.instance
+          .collection('globalConvos')
+          .doc(widget.conversationId)
+          .update({
+        'lastMessage': value.id,
+        'lastmessagetimestamp': now, // updates the lastmessagetimestamp field
+      });
+    });
+  }
+
+  Future<void> generateResponse() async {
+    // Fetch all messages from Firestore
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('globalConvos')
+        .doc(widget.conversationId)
+        .collection('messages')
+        .orderBy('timestamp', descending: false)
+        .get();
+
+    // Generate context messages from Firestore messages
+    List<OpenAIChatCompletionChoiceMessageModel> msgContext =
+        snapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+      //role is system is msg was sent by chatbot, otherwise its user
+      OpenAIChatMessageRole role = data['sender'] == "chatbot"
+          ? OpenAIChatMessageRole.system
+          : OpenAIChatMessageRole.user;
+      return OpenAIChatCompletionChoiceMessageModel(
+        role: role,
+        content: data['content'],
+      );
+    }).toList();
+
+    // Get the chatbot's response
+    OpenAIChatCompletionModel chatbotResponse =
+        await OpenAI.instance.chat.create(
+      model: "gpt-3.5-turbo",
+      messages: msgContext,
+    );
   }
 }
