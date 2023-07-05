@@ -261,5 +261,8 @@ class MessagesState extends State<ConvoInstance> {
       model: "gpt-3.5-turbo",
       messages: msgContext,
     );
+
+    //send the generated response
+    sendBotResponse(chatbotResponse.choices[0].toString());
   }
 }
