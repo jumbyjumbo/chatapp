@@ -56,6 +56,10 @@ class FriendsListState extends State<FriendsList> {
         'convos': FieldValue.arrayUnion([conversationDoc.id]),
       });
     }
+    // Clear selectedUsers list after successfully creating the conversation
+    setState(() {
+      selectedUsers.clear();
+    });
   }
 
   @override

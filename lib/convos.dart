@@ -145,7 +145,8 @@ class ConvoListState extends State<ConvoList> {
                 color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
-                // profile button functionality goes here TODO
+                // route to profile page
+                Navigator.of(context).pushNamed('/profile');
               },
             ),
 
