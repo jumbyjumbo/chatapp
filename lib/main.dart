@@ -2,6 +2,7 @@ import 'package:dart_openai/dart_openai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'authservice.dart';
@@ -54,7 +55,9 @@ class MyApp extends StatelessWidget {
             }
           } else {
             // Show nothing
-            return const SizedBox.shrink();
+            return Container(
+              color: Colors.transparent,
+            );
           }
         },
       ),

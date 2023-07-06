@@ -269,6 +269,6 @@ class MessagesState extends State<ConvoInstance> {
     );
 
     //send the generated response
-    sendBotResponse(chatbotResponse.choices[0].toString());
+    sendBotResponse(chatbotResponse.choices[0].message.content);
   }
 }
