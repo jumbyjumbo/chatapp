@@ -202,9 +202,13 @@ class MessagesState extends State<ConvoInstance> {
             .update({
           'lastMessage': value.id,
           'lastmessagetimestamp': now, // updates the lastmessagetimestamp field
+        }).then((value) {
+          //generate response from chatbot
+          generateChatbotResponse();
         });
       });
 
+      //clear the chat text field
       msgController.clear();
     }
   }
@@ -234,7 +238,7 @@ class MessagesState extends State<ConvoInstance> {
     });
   }
 
-  Future<void> generateResponse() async {
+  Future<void> generateChatbotResponse() async {
     // Fetch all messages from Firestore
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('globalConvos')
@@ -249,7 +253,7 @@ class MessagesState extends State<ConvoInstance> {
       Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
       //role is system is msg was sent by chatbot, otherwise its user
       OpenAIChatMessageRole role = data['sender'] == "chatbot"
-          ? OpenAIChatMessageRole.system
+          ? OpenAIChatMessageRole.assistant
           : OpenAIChatMessageRole.user;
       return OpenAIChatCompletionChoiceMessageModel(
         role: role,
