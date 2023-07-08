@@ -102,10 +102,7 @@ class MessagesState extends State<ConvoInstance> {
                     color: Colors.transparent,
                   );
                 }
-                // If message is not from chatbot
-                if (data['sender'] != 'chatbot') {
-                  // Generate response and send it TODO
-                }
+
                 //get user data
                 Map<String, dynamic> userData =
                     snapshot.data!.data()! as Map<String, dynamic>;
@@ -124,18 +121,24 @@ class MessagesState extends State<ConvoInstance> {
                       const SizedBox(
                           width:
                               10), // gives some spacing between the pp and the message content
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            //message sender's name
-                            userData['name'],
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          //message content
-                          Text(data['content']),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              //message sender's name
+                              userData['name'],
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            //message content
+                            Text(
+                              data['content'],
+                              softWrap: true,
+                              maxLines: 10,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -152,7 +155,7 @@ class MessagesState extends State<ConvoInstance> {
   Widget buildMessageSender() {
     return Container(
       //padding for the text field and send button
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.all(8),
       child: Row(
         children: <Widget>[
           Expanded(
@@ -166,9 +169,12 @@ class MessagesState extends State<ConvoInstance> {
                 //border around the text field
                 border: Border.all(
                   color: CupertinoColors.inactiveGray,
-                  width: 0.5,
+                  width: 0.1,
                 ),
               ),
+              maxLines: 10,
+              minLines: 1,
+              maxLength: 300,
             ),
           ),
           CupertinoButton(
@@ -266,6 +272,8 @@ class MessagesState extends State<ConvoInstance> {
         await OpenAI.instance.chat.create(
       model: "gpt-3.5-turbo",
       messages: msgContext,
+      maxTokens: 50,
+      temperature: 0.2,
     );
 
     //send the generated response
