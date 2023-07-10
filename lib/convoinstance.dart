@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
@@ -23,8 +22,6 @@ class ConvoInstance extends StatefulWidget {
 class MessagesState extends State<ConvoInstance> {
   //signed in user
   late User user;
-  //focus node for the message text field
-  late FocusNode focusNode;
   //controller for the message text field
   final TextEditingController msgController = TextEditingController();
 
@@ -34,7 +31,6 @@ class MessagesState extends State<ConvoInstance> {
     super.initState();
     //get the current user
     user = FirebaseAuth.instance.currentUser!;
-    focusNode = FocusNode();
   }
 
   // 2. UI
@@ -163,41 +159,28 @@ class MessagesState extends State<ConvoInstance> {
         children: <Widget>[
           Expanded(
             //raw keyboard listener to listen for the enterv key
-            child: RawKeyboardListener(
-              focusNode: focusNode, //focus node for the text field
-              onKey: (RawKeyEvent event) {
-                //if the user presses enter, we send the message
-                if (event is RawKeyDownEvent &&
-                    event.logicalKey == LogicalKeyboardKey.enter &&
-                    event.isKeyPressed(LogicalKeyboardKey.enter)) {
-                  //if shift key is pressed, skip line
-                  if (event.isShiftPressed) {
-                    //move the cursor to the end of the text field
-                    msgController.selection = TextSelection.fromPosition(
-                        TextPosition(offset: msgController.text.length));
-                  } else {
-                    //if shift key is not pressed, we send the message
-                    sendMessage();
-                  }
-                }
-              },
-
-              //text field
-              child: CupertinoTextField(
-                //handle the msg content to be sent by current user
-                controller: msgController,
-                placeholder: "Send a message...",
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25.0),
-                  //border around the text field
-                  border: Border.all(
-                    color: CupertinoColors.inactiveGray,
-                    width: 0.1,
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                //border around text field
+                border: Border.all(
+                  color: CupertinoColors.systemGrey,
+                  width: 1,
                 ),
-                maxLines: 10,
-                minLines: 1,
-                maxLength: 300,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: CupertinoTextField(
+                  //handle the msg content to be sent by current user
+                  controller: msgController,
+                  placeholder: "Send a message...",
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.send,
+                  maxLines: 10,
+                  minLines: 1,
+                  maxLength: 1000,
+                ),
               ),
             ),
           ),
