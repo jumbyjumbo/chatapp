@@ -63,7 +63,10 @@ class MessagesState extends State<ConvoInstance> {
                   context: context,
                   builder: (context) {
                     // Replace this with your settings widget
-                    return const ConversationSettings();
+                    return ConversationSettings(
+                      conversationId: widget.conversationId,
+                      conversationData: widget.conversationData,
+                    );
                   },
                 );
               },
