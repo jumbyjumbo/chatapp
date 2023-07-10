@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
@@ -33,6 +34,15 @@ class MessagesState extends State<ConvoInstance> {
     user = FirebaseAuth.instance.currentUser!;
   }
 
+  //free up memory
+  @override
+  void dispose() {
+    // Always call super.dispose() first
+    super.dispose();
+    // Dispose of the text controller when the state is destroyed.
+    msgController.dispose();
+  }
+
   // 2. UI
   @override
   Widget build(BuildContext context) {
@@ -40,8 +50,25 @@ class MessagesState extends State<ConvoInstance> {
     return CupertinoPageScaffold(
       //top navigation bar
       navigationBar: CupertinoNavigationBar(
-        //display conversation's name
         middle: Text(widget.conversationData['name']),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Icon(CupertinoIcons.gear),
+              onPressed: () {
+                showCupertinoModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    // Replace this with your settings widget
+                    return Container();
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
       //body (messages list/column)
       child: Column(
@@ -158,7 +185,7 @@ class MessagesState extends State<ConvoInstance> {
       child: Row(
         children: <Widget>[
           Expanded(
-            //raw keyboard listener to listen for the enterv key
+            //raw keyboard listener to listen for the enter key
             child: Container(
               decoration: BoxDecoration(
                 //border around text field
@@ -172,6 +199,9 @@ class MessagesState extends State<ConvoInstance> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: CupertinoTextField(
+                  decoration: const BoxDecoration(
+                    border: null,
+                  ),
                   //handle the msg content to be sent by current user
                   controller: msgController,
                   placeholder: "Send a message...",
