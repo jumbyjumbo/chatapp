@@ -36,6 +36,10 @@ class ConversationSettingsState extends State<ConversationSettings> {
               });
             },
           ),
+          //change convo picture
+          CupertinoButton(
+              child: const Text('Change Conversation Picture'),
+              onPressed: () {})
         ],
       )),
     );
