@@ -51,7 +51,21 @@ class MessagesState extends State<ConvoInstance> {
     return CupertinoPageScaffold(
       //top navigation bar
       navigationBar: CupertinoNavigationBar(
-        middle: Text(widget.conversationData['name']),
+        //convo name
+        middle: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('globalConvos')
+              .doc(widget.conversationId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.active) {
+              return Text(snapshot.data?['name']);
+            } else {
+              return const Text('');
+            }
+          },
+        ),
+        //convo buttons
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -59,10 +73,10 @@ class MessagesState extends State<ConvoInstance> {
               padding: EdgeInsets.zero,
               child: const Icon(CupertinoIcons.gear),
               onPressed: () {
+                //show convo settings ui
                 showCupertinoModalBottomSheet(
                   context: context,
                   builder: (context) {
-                    // Replace this with your settings widget
                     return ConversationSettings(
                       conversationId: widget.conversationId,
                       conversationData: widget.conversationData,
