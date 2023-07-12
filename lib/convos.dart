@@ -187,22 +187,25 @@ class ConvoListState extends State<ConvoList> {
               Map<String, dynamic> conversationData =
                   conversationDoc.data() as Map<String, dynamic>;
 
-              return GestureDetector(
-                onTap: () {
-                  // Open conversation
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ConvoInstance(
-                        conversationId: conversationDoc.id,
-                        conversationData: conversationData,
+              return Dismissible(
+                key: Key(conversationDoc.id),
+                child: GestureDetector(
+                  onTap: () {
+                    // Open conversation
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ConvoInstance(
+                          conversationId: conversationDoc.id,
+                          conversationData: conversationData,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: _buildConvoWidget(
-                  conversationData,
-                  conversationDoc.id,
+                    );
+                  },
+                  child: _buildConvoWidget(
+                    conversationData,
+                    conversationDoc.id,
+                  ),
                 ),
               );
             },

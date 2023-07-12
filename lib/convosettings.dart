@@ -14,6 +14,15 @@ class ConversationSettings extends StatefulWidget {
 }
 
 class ConversationSettingsState extends State<ConversationSettings> {
+  late TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController =
+        TextEditingController(text: widget.conversationData['name']);
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -23,16 +32,18 @@ class ConversationSettingsState extends State<ConversationSettings> {
         children: [
           //textfield to change convo name
           CupertinoTextFormFieldRow(
-            initialValue: widget.conversationData[
-                'name'], // Use the initial name from conversationData
+            controller: _nameController,
             placeholder: 'Conversation Name',
-            onChanged: (value) {
+          ),
+          CupertinoButton(
+            child: const Text('Update Conversation Name'),
+            onPressed: () {
               // Update conversation name in Firestore
               FirebaseFirestore.instance
                   .collection('globalConvos')
                   .doc(widget.conversationId)
                   .update({
-                'name': value,
+                'name': _nameController.text,
               });
             },
           ),
@@ -43,5 +54,11 @@ class ConversationSettingsState extends State<ConversationSettings> {
         ],
       )),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 }
