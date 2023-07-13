@@ -2,8 +2,7 @@ from firebase_functions import config, https_fn
 import openai
 
 # This line sets the API key for the OpenAI library.
-# It reads the key from the Firebase Functions config, which you set earlier.
-openai.api_key = config()["openai"]["key"]
+openai.api_key = "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"
 
 # This decorator registers the function as an HTTP-triggered function.
 
