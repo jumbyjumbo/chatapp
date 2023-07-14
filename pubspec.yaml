@@ -30,7 +30,6 @@ environment:
 dependencies:
   cloud_firestore: ^4.8.1
   cupertino_icons: ^1.0.2
-  dart_openai: ^3.0.0
   firebase_auth: ^4.6.3
   firebase_core: ^2.14.0
   flutter:
@@ -38,7 +37,6 @@ dependencies:
   flutter_dotenv: ^5.1.0
   get_time_ago: ^1.2.4
   google_sign_in: ^6.1.4
-  http: ^1.1.0
   modal_bottom_sheet: ^3.0.0-pre
   peanut: ^5.0.0
 

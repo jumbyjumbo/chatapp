@@ -1,4 +1,3 @@
-import 'package:dart_openai/dart_openai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,9 +15,6 @@ void main() async {
 
   //load .env file
   await dotenv.load();
-
-  // Initialize OpenAI API
-  OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
 
   //initialize firebase
   await Firebase.initializeApp(
