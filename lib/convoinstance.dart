@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/convosettings.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
@@ -322,16 +324,30 @@ class MessagesState extends State<ConvoInstance> {
       );
     }).toList();
 
-    // Get the chatbot's response
-    OpenAIChatCompletionModel chatbotResponse =
-        await OpenAI.instance.chat.create(
-      model: "gpt-3.5-turbo",
-      messages: msgContext,
-      maxTokens: 500,
-      temperature: 0.2,
+    // URL of your Firebase function
+    const url =
+        "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/get_openai_completion";
+
+    // Making a POST request
+    final response = await http.post(
+      Uri.parse(url),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{'messages': msgContext}),
     );
 
-    //send the generated response
-    sendBotResponse(chatbotResponse.choices[0].message.content);
+    // If the server returns a 200 OK response, parse the JSON.
+    if (response.statusCode == 200) {
+      // Get the chatbot's response
+      String chatbotResponse = jsonDecode(response.body);
+
+      // Send the generated response
+      sendBotResponse(chatbotResponse);
+    } else {
+      // If the server did not return a 200 OK response,
+      // throw an exception.
+      throw Exception('Failed to generate chatbot response');
+    }
   }
 }
