@@ -40,7 +40,7 @@ class ConversationSettingsState extends State<ConversationSettings> {
             onPressed: () {
               // Update conversation name in Firestore
               FirebaseFirestore.instance
-                  .collection('globalConvos')
+                  .collection('conversations')
                   .doc(widget.conversationId)
                   .update({
                 'name': _nameController.text,

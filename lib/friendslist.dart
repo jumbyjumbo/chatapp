@@ -27,7 +27,7 @@ class FriendsListState extends State<FriendsList> {
     memberIds.add(widget.userId);
     //create the conversation
     DocumentReference conversationDoc =
-        await FirebaseFirestore.instance.collection('globalConvos').add({
+        await FirebaseFirestore.instance.collection('conversations').add({
       'name': defaultName,
       'members': memberIds,
       'convoPicture': defaultPic,
@@ -35,7 +35,7 @@ class FriendsListState extends State<FriendsList> {
     });
     //add the first message to the conversation
     String lastMsg = await FirebaseFirestore.instance
-        .collection('globalConvos')
+        .collection('conversations')
         .doc(conversationDoc.id)
         .collection("messages")
         .add({

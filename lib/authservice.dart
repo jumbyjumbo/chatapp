@@ -47,67 +47,24 @@ class AuthService {
     final usersCollection = FirebaseFirestore.instance.collection('users');
     // Get the document with the same UID as the user
     final userDoc = usersCollection.doc(user.uid);
-    // Get the document snapshot
+    // Get the user's info
     final docSnapshot = await userDoc.get();
 
-    // Function to add the first message from the chatbot
-    Future<String> addFirstMsg(String conversationUID) async {
-      final DateTime now = DateTime.now(); // creates a new timestamp
-      DocumentReference message = await FirebaseFirestore.instance
-          .collection('globalConvos')
-          .doc(conversationUID)
-          .collection("messages")
-          .add({
-        'sender': "chatbot",
-        'content':
-            "Hi! I'm the chatbot. I'm here to help you get started with your new account. You can start by adding friends and chatting with them!",
-        'timestamp': now,
-      });
-      return message.id;
-    }
-
-    // create the default conversation for the user with the chatbot
-    Future<String> createConversation(String name, String convoPicture) async {
-      final DateTime now = DateTime.now(); // creates a new timestamp
-
-      DocumentReference conversationDoc =
-          await FirebaseFirestore.instance.collection('globalConvos').add({
-        'name': name,
-        'members': [user.uid, "chatbot"],
-        'convoPicture': convoPicture,
-        'lastmessagetimestamp': now,
-      });
-      //create first message from bot
-      String lastMsg = await addFirstMsg(conversationDoc.id);
-      //make it the last msg sent
-      await conversationDoc.update({
-        'lastMessage': lastMsg,
-        'lastmessagetimestamp': now,
-      });
-
-      return conversationDoc.id;
-    }
-
-    //create chatbot user if recent firestore wipe
+    //lookup and create chatbot user if recent firestore wipe
     DocumentReference chatbotRef = usersCollection.doc('chatbot');
     DocumentSnapshot chatbotDoc = await chatbotRef.get();
-
     if (!chatbotDoc.exists) {
       createChatBotUser();
     }
 
     // If the document does not exist, create it with the user's data
     if (!docSnapshot.exists) {
-      //create the conversation in Firestore and get their IDs
-      String chatBotConvo = await createConversation("chatbot convo",
-          "https://raw.githubusercontent.com/jumbyjumbo/images/main/black%20logo.jpg");
-
       //Then, add these conversation IDs to the new user's list of conversations
       //and create new user at once
       await userDoc.set({
         'name': user.displayName,
         'email': user.email,
-        'convos': [chatBotConvo],
+        'convos': [],
         'profilepicture': user.photoURL,
         'phone': user.phoneNumber,
         'bio': "${user.displayName}'s bio",

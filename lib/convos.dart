@@ -65,7 +65,7 @@ class ConvoListState extends State<ConvoList> {
     double screenHeightUnit = screenHeight * 0.01;
 
     Stream<QuerySnapshot> conversationsStream = FirebaseFirestore.instance
-        .collection('globalConvos')
+        .collection('conversations')
         .where('members',
             arrayContains: user
                 .uid) // Filter conversations where the user is a participant
@@ -277,7 +277,7 @@ class ConvoListState extends State<ConvoList> {
                 // StreamBuilder to display the last message
                 StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('globalConvos')
+                      .collection('conversations')
                       .doc(conversationId)
                       .collection("messages")
                       .doc(convoData['lastMessage'])

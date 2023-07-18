@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'authservice.dart';
 
@@ -12,9 +11,6 @@ import 'convos.dart';
 void main() async {
   //make sure widgets load before anything else
   WidgetsFlutterBinding.ensureInitialized();
-
-  //load .env file
-  await dotenv.load();
 
   //initialize firebase
   await Firebase.initializeApp(

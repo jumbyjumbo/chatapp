@@ -53,7 +53,7 @@ class MessagesState extends State<ConvoInstance> {
         //convo name
         middle: StreamBuilder(
           stream: FirebaseFirestore.instance
-              .collection('globalConvos')
+              .collection('conversations')
               .doc(widget.conversationId)
               .snapshots(),
           builder: (context, snapshot) {
@@ -111,7 +111,7 @@ class MessagesState extends State<ConvoInstance> {
     return StreamBuilder<QuerySnapshot>(
       //stream ConvoInstance of conversation from firestore
       stream: FirebaseFirestore.instance
-          .collection('globalConvos')
+          .collection('conversations')
           .doc(widget.conversationId)
           .collection('messages')
           .orderBy('timestamp', descending: true)
@@ -132,61 +132,41 @@ class MessagesState extends State<ConvoInstance> {
           children: snapshot.data!.docs.map((DocumentSnapshot document) {
             Map<String, dynamic> data =
                 document.data()! as Map<String, dynamic>;
-            return StreamBuilder<DocumentSnapshot>(
-              //get the msg sender's data
-              stream: getUserData(data['sender']),
-              builder: (BuildContext context,
-                  AsyncSnapshot<DocumentSnapshot> snapshot) {
-                //if snapshot is loading or has no data, show nothing
-                if (snapshot.connectionState == ConnectionState.waiting ||
-                    !snapshot.hasData) {
-                  //show nothing
-                  return Container(
-                    color: Colors.transparent,
-                  );
-                }
-
-                //get user data
-                Map<String, dynamic> userData =
-                    snapshot.data!.data()! as Map<String, dynamic>;
-                //message padding
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  //message row
-                  child: Row(
-                    children: [
-                      //message sender's  profile picture
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(userData[
-                            'profilepicture']), //get the profile picture from the user data
-                        backgroundColor: Colors.transparent, // no pp background
-                      ),
-                      const SizedBox(
-                          width:
-                              10), // gives some spacing between the pp and the message content
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              //message sender's name
-                              userData['name'],
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            //message content
-                            Text(
-                              data['content'],
-                              softWrap: true,
-                              maxLines: 10,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              //message row
+              child: Row(
+                children: [
+                  //message sender's profile picture
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(data[
+                        'senderProfilePicture']), //get the profile picture from the message data
+                    backgroundColor: Colors.transparent, // no pp background
                   ),
-                );
-              },
+                  const SizedBox(
+                      width:
+                          10), // gives some spacing between the pp and the message content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          //message sender's name
+                          data['senderName'],
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        //message content
+                        Text(
+                          data['content'],
+                          softWrap: true,
+                          maxLines: 10,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           }).toList(),
         );
@@ -241,23 +221,34 @@ class MessagesState extends State<ConvoInstance> {
   }
 
 //send a msg from the current user
-  void sendMessage() {
+  Future<void> sendMessage() async {
     if (msgController.text.isNotEmpty) {
       final DateTime now = DateTime.now(); // creates a new timestamp
 
+      //get the current user's data
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      Map<String, dynamic> userData = userDoc.data()! as Map<String, dynamic>;
+
       //add the message to the conversation
       FirebaseFirestore.instance
-          .collection('globalConvos')
+          .collection('conversations')
           .doc(widget.conversationId)
           .collection('messages')
           .add({
         'sender': user.uid,
+        'senderName':
+            userData['name'], // include the sender's name in the message data
+        'senderProfilePicture': userData[
+            'profilepicture'], // include the sender's profile picture in the message data
         'content': msgController.text,
         'timestamp': now,
       }).then((value) {
         //update the last message sent in the conversation
         FirebaseFirestore.instance
-            .collection('globalConvos')
+            .collection('conversations')
             .doc(widget.conversationId)
             .update({
           'lastMessage': value.id,
