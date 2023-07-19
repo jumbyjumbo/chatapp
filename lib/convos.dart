@@ -38,7 +38,9 @@ class ConvoListState extends State<ConvoList> {
       stream: _authService.authStateChanges,
       builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return Container(
+            color: Colors.transparent,
+          );
         } else {
           User? user = snapshot.data;
           if (user != null) {
@@ -89,7 +91,7 @@ class ConvoListState extends State<ConvoList> {
             if (snapshot.connectionState == ConnectionState.waiting ||
                 !snapshot.hasData) {
               //show nothing
-              return const SizedBox.shrink();
+              return Container(color: Colors.transparent);
             }
             //display user's name
             return FittedBox(
