@@ -50,6 +50,7 @@ class MessagesState extends State<ConvoInstance> {
     return CupertinoPageScaffold(
       //top navigation bar
       navigationBar: CupertinoNavigationBar(
+        backgroundColor: Colors.transparent,
         //convo name
         middle: StreamBuilder(
           stream: FirebaseFirestore.instance
@@ -88,12 +89,10 @@ class MessagesState extends State<ConvoInstance> {
         ),
       ),
       //body (messages list/column)
-      child: Column(
+      child: Stack(
         children: [
-          Expanded(
-            child: buildMessageList(),
-          ),
-          buildMessageSender(),
+          buildMessageList(),
+          Positioned(bottom: 0, left: 0, right: 0, child: buildMessageSender()),
         ],
       ),
     );
@@ -176,7 +175,7 @@ class MessagesState extends State<ConvoInstance> {
 
 //build the chat text field and send button
   Widget buildMessageSender() {
-    return Container(
+    return Padding(
       //padding for the text field and send button
       padding: const EdgeInsets.all(8),
       child: Row(
@@ -185,35 +184,35 @@ class MessagesState extends State<ConvoInstance> {
             //raw keyboard listener to listen for the enter key
             child: Container(
               decoration: BoxDecoration(
+                color: Colors.transparent,
                 //border around text field
                 border: Border.all(
-                  color: CupertinoColors.systemGrey,
+                  color: CupertinoColors.lightBackgroundGray,
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(25),
               ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: CupertinoTextField(
-                  decoration: const BoxDecoration(
-                    border: null,
-                  ),
-                  //handle the msg content to be sent by current user
-                  controller: msgController,
-                  placeholder: "Send a message...",
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.send,
-                  maxLines: 10,
-                  minLines: 1,
-                  maxLength: 1000,
+              child: CupertinoTextField(
+                decoration: const BoxDecoration(
+                  border: null,
                 ),
+                //handle the msg content to be sent by current user
+                controller: msgController,
+                placeholder: "Message",
+                placeholderStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.placeholderText),
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.send,
+                maxLines: 10,
+                minLines: 1,
+                maxLength: 1000,
               ),
             ),
           ),
           CupertinoButton(
             onPressed: sendMessage,
-            child: const Icon(CupertinoIcons.paperplane),
+            child: const Text('Send'),
           ),
         ],
       ),
