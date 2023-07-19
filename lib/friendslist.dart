@@ -33,21 +33,7 @@ class FriendsListState extends State<FriendsList> {
       'convoPicture': defaultPic,
       'lastmessagetimestamp': now,
     });
-    //add the first message to the conversation
-    String lastMsg = await FirebaseFirestore.instance
-        .collection('conversations')
-        .doc(conversationDoc.id)
-        .collection("messages")
-        .add({
-      'sender': widget.userId,
-      'content': "Welcome to the new group chat!",
-      'timestamp': now,
-    }).then((value) => value.id);
-    //update the conversation with the last message
-    await conversationDoc.update({
-      'lastMessage': lastMsg,
-      'lastmessagetimestamp': now,
-    });
+
     //for each member, add the conversation to their list of convos
     for (String id in memberIds) {
       DocumentReference userDoc =

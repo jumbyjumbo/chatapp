@@ -285,6 +285,7 @@ class ConvoListState extends State<ConvoList> {
                   builder: (BuildContext context,
                       AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting ||
+                        convoData['lastMessage'] == null ||
                         !snapshot.hasData) {
                       //show nothing
                       return Container(color: Colors.transparent);
