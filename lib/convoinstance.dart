@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/convosettings.dart';
 import 'package:pleasepleasepleaseplease/uiFX.dart';
@@ -219,11 +221,26 @@ class MessagesState extends State<ConvoInstance> {
               builder: (context, value, child) {
                 return value
                     ? CupertinoButton(
-                        child: const Icon(
-                          Icons.photo_library,
-                          size: 20,
-                        ),
-                        onPressed: () {})
+                        child: const Icon(CupertinoIcons.photo),
+                        onPressed: () async {
+                          final ImagePicker _picker = ImagePicker();
+                          final XFile? image = await _picker.pickImage(
+                              source: ImageSource.gallery);
+                          if (image != null) {
+                            // On web, the image is a network-accessible URL
+                            // Hence, use Image.network
+                            if (kIsWeb) {
+                              // Use the picked image
+                              // Image.network(image.path);
+                              print(image.path);
+                            } else {
+                              // On mobile platforms, use the image normally
+                              // Image.file(File(image.path));
+                              print(image.path);
+                            }
+                          }
+                        },
+                      )
                     : CupertinoButton(
                         onPressed: sendMessage,
                         child: const Text('Send',
