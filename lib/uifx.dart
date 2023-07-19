@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import 'package:flutter/cupertino.dart';
 import 'dart:ui';
 
 class BlurEffectView extends StatelessWidget {
@@ -16,7 +15,7 @@ class BlurEffectView extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
-          color: Colors.white.withOpacity(0.3),
+          color: CupertinoColors.lightBackgroundGray.withOpacity(0.5),
           child: child,
         ),
       ),

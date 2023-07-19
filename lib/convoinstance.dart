@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/convosettings.dart';
+import 'package:pleasepleasepleaseplease/uiFX.dart';
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
@@ -23,8 +24,10 @@ class ConvoInstance extends StatefulWidget {
 class MessagesState extends State<ConvoInstance> {
   //signed in user
   late User user;
+
   //controller for the message text field
   final TextEditingController msgController = TextEditingController();
+  ValueNotifier<bool> textFieldIsEmpty = ValueNotifier(true);
 
   //on init, get the current user
   @override
@@ -41,6 +44,9 @@ class MessagesState extends State<ConvoInstance> {
     super.dispose();
     // Dispose of the text controller when the state is destroyed.
     msgController.dispose();
+
+    //dispose of the text field listener
+    textFieldIsEmpty.dispose();
   }
 
   // 2. UI
@@ -106,6 +112,7 @@ class MessagesState extends State<ConvoInstance> {
   }
 
 //build the list of messages
+  //build the list of messages
   Widget buildMessageList() {
     return StreamBuilder<QuerySnapshot>(
       //stream ConvoInstance of conversation from firestore
@@ -125,96 +132,111 @@ class MessagesState extends State<ConvoInstance> {
         }
 
         //actual message list
+        var messageWidgets =
+            snapshot.data!.docs.map((DocumentSnapshot document) {
+          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            //message row
+            child: Row(
+              children: [
+                //message sender's profile picture
+                CircleAvatar(
+                  backgroundImage: NetworkImage(data[
+                      'senderProfilePicture']), //get the profile picture from the message data
+                  backgroundColor: Colors.transparent, // no pp background
+                ),
+                const SizedBox(
+                    width:
+                        10), // gives some spacing between the pp and the message content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        //message sender's name
+                        data['senderName'],
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      //message content
+                      Text(
+                        data['content'],
+                        softWrap: true,
+                        maxLines: 10,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList();
+
+        messageWidgets.insert(
+            0,
+            const Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical:
+                        30)) // This is the extra space at the beginning of the list.
+            );
+
         return ListView(
           reverse: true,
-          //map each message to a widget
-          children: snapshot.data!.docs.map((DocumentSnapshot document) {
-            Map<String, dynamic> data =
-                document.data()! as Map<String, dynamic>;
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              //message row
-              child: Row(
-                children: [
-                  //message sender's profile picture
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(data[
-                        'senderProfilePicture']), //get the profile picture from the message data
-                    backgroundColor: Colors.transparent, // no pp background
-                  ),
-                  const SizedBox(
-                      width:
-                          10), // gives some spacing between the pp and the message content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          //message sender's name
-                          data['senderName'],
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        //message content
-                        Text(
-                          data['content'],
-                          softWrap: true,
-                          maxLines: 10,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
+          // map each message to a widget
+          children: messageWidgets,
         );
       },
     );
   }
 
-//build the chat text field and send button
   Widget buildMessageSender() {
+    //listen to the text field and update the send button accordingly
+    msgController.addListener(() {
+      textFieldIsEmpty.value = msgController.text.isEmpty;
+    });
+
     return Padding(
-      //padding for the text field and send button
       padding: const EdgeInsets.all(8),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            //raw keyboard listener to listen for the enter key
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                //border around text field
-                border: Border.all(
-                  color: CupertinoColors.lightBackgroundGray,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(25),
+      child: BlurEffectView(
+        blurAmount: 10,
+        child: Stack(
+          children: [
+            CupertinoTextField(
+              decoration: const BoxDecoration(
+                border: null,
               ),
-              child: CupertinoTextField(
-                decoration: const BoxDecoration(
-                  border: null,
-                ),
-                //handle the msg content to be sent by current user
-                controller: msgController,
-                placeholder: "Message",
-                placeholderStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: CupertinoColors.placeholderText),
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.send,
-                maxLines: 10,
-                minLines: 1,
-                maxLength: 1000,
-              ),
+              controller: msgController,
+              placeholder: "Message",
+              placeholderStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.placeholderText),
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.send,
+              maxLines: 10,
+              minLines: 1,
+              maxLength: 1000,
             ),
-          ),
-          CupertinoButton(
-            onPressed: sendMessage,
-            child: const Text('Send'),
-          ),
-        ],
+            Positioned(
+              right: 10,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: ValueListenableBuilder<bool>(
+                    valueListenable: textFieldIsEmpty,
+                    builder: (context, value, child) {
+                      return value
+                          ? CupertinoButton(
+                              child: const Icon(CupertinoIcons.add),
+                              onPressed: () {})
+                          : CupertinoButton(
+                              onPressed: sendMessage,
+                              child: const Text('Send'),
+                            );
+                    }),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
