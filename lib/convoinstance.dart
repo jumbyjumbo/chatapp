@@ -200,42 +200,36 @@ class MessagesState extends State<ConvoInstance> {
       padding: const EdgeInsets.all(8),
       child: BlurEffectView(
         blurAmount: 10,
-        child: Stack(
-          children: [
-            CupertinoTextField(
-              decoration: const BoxDecoration(
-                border: null,
-              ),
-              controller: msgController,
-              placeholder: "Message",
-              placeholderStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: CupertinoColors.placeholderText),
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.send,
-              maxLines: 10,
-              minLines: 1,
-              maxLength: 1000,
-            ),
-            Positioned(
-              right: 10,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: ValueListenableBuilder<bool>(
-                    valueListenable: textFieldIsEmpty,
-                    builder: (context, value, child) {
-                      return value
-                          ? CupertinoButton(
-                              child: const Icon(CupertinoIcons.add),
-                              onPressed: () {})
-                          : CupertinoButton(
-                              onPressed: sendMessage,
-                              child: const Text('Send'),
-                            );
-                    }),
-              ),
-            )
-          ],
+        child: CupertinoTextField(
+          decoration: const BoxDecoration(
+            border: null,
+          ),
+          controller: msgController,
+          placeholder: "Message",
+          placeholderStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: CupertinoColors.placeholderText),
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.send,
+          maxLines: 10,
+          minLines: 1,
+          maxLength: 1000,
+          suffix: ValueListenableBuilder<bool>(
+              valueListenable: textFieldIsEmpty,
+              builder: (context, value, child) {
+                return value
+                    ? CupertinoButton(
+                        child: const Icon(
+                          Icons.photo_library,
+                          size: 20,
+                        ),
+                        onPressed: () {})
+                    : CupertinoButton(
+                        onPressed: sendMessage,
+                        child: const Text('Send',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      );
+              }),
         ),
       ),
     );
