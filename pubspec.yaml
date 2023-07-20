@@ -10,6 +10,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_auth: ^4.6.3
   firebase_core: ^2.14.0
+  firebase_storage: ^11.2.5
   flutter:
     sdk: flutter
   get_time_ago: ^1.2.4
@@ -17,6 +18,7 @@ dependencies:
   image_picker: ^1.0.1
   image_picker_for_web: ^2.2.0
   modal_bottom_sheet: ^3.0.0-pre
+  path: ^1.8.3
   peanut: ^5.0.0
 
 dev_dependencies:

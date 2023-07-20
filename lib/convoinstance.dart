@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/convosettings.dart';
 import 'package:pleasepleasepleaseplease/uiFX.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
@@ -137,6 +139,25 @@ class MessagesState extends State<ConvoInstance> {
         var messageWidgets =
             snapshot.data!.docs.map((DocumentSnapshot document) {
           Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+
+          // check if the content is an image URL
+          bool isImageUrl = data['content'].toString().startsWith('http');
+
+          Widget contentWidget;
+          if (isImageUrl) {
+            contentWidget = Image.network(
+              data['content'],
+              fit: BoxFit.cover,
+              // include other properties as required
+            );
+          } else {
+            contentWidget = Text(
+              data['content'],
+              softWrap: true,
+              maxLines: 10,
+            );
+          }
+
           return Padding(
             padding: const EdgeInsets.all(8.0),
             //message row
@@ -162,11 +183,7 @@ class MessagesState extends State<ConvoInstance> {
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       //message content
-                      Text(
-                        data['content'],
-                        softWrap: true,
-                        maxLines: 10,
-                      ),
+                      contentWidget,
                     ],
                   ),
                 ),
@@ -220,26 +237,9 @@ class MessagesState extends State<ConvoInstance> {
               valueListenable: textFieldIsEmpty,
               builder: (context, value, child) {
                 return value
-                    ? CupertinoButton(
-                        child: const Icon(CupertinoIcons.photo),
-                        onPressed: () async {
-                          final ImagePicker _picker = ImagePicker();
-                          final XFile? image = await _picker.pickImage(
-                              source: ImageSource.gallery);
-                          if (image != null) {
-                            // On web, the image is a network-accessible URL
-                            // Hence, use Image.network
-                            if (kIsWeb) {
-                              // Use the picked image
-                              // Image.network(image.path);
-                              print(image.path);
-                            } else {
-                              // On mobile platforms, use the image normally
-                              // Image.file(File(image.path));
-                              print(image.path);
-                            }
-                          }
-                        },
+                    ? ImageSelect(
+                        conversationId: widget.conversationId,
+                        user: user,
                       )
                     : CupertinoButton(
                         onPressed: sendMessage,
@@ -291,5 +291,87 @@ class MessagesState extends State<ConvoInstance> {
       //clear the chat text field
       msgController.clear();
     }
+  }
+}
+
+//image selection button to send images as messages
+class ImageSelect extends StatelessWidget {
+  const ImageSelect(
+      {Key? key, required this.conversationId, required this.user})
+      : super(key: key);
+
+  final String conversationId;
+  final User user;
+
+  Future<String> uploadImageToFirebase(XFile imageFile) async {
+    File file = File(imageFile.path); // Convert the XFile to a File
+
+    FirebaseStorage storage = FirebaseStorage.instance;
+
+    try {
+      await storage
+          .ref('conversations/$conversationId/${path.basename(imageFile.path)}')
+          .putFile(file);
+
+      // Return the download URL
+      String downloadURL = await storage
+          .ref('conversations/$conversationId/${path.basename(imageFile.path)}')
+          .getDownloadURL();
+      return downloadURL;
+    } on FirebaseException catch (e) {
+      print(e);
+      return "";
+    }
+  }
+
+  Future<void> createImageMsg(String imageUrl) async {
+    final DateTime now = DateTime.now();
+
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    Map<String, dynamic> userData = userDoc.data()! as Map<String, dynamic>;
+
+    FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .add({
+      'sender': user.uid,
+      'senderName': userData['name'],
+      'senderProfilePicture': userData['profilepicture'],
+      'content': imageUrl, // The content is now an image URL
+      'timestamp': now,
+    }).then((value) {
+      FirebaseFirestore.instance
+          .collection('conversations')
+          .doc(conversationId)
+          .update({
+        'lastMessage': value.id,
+        'lastmessagetimestamp': now,
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoButton(
+      child: const Icon(CupertinoIcons.photo),
+      onPressed: () async {
+        final ImagePicker picker = ImagePicker();
+        final XFile? image =
+            await picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          String imageUrl = await uploadImageToFirebase(
+              image); // Upload the image to Firebase
+          if (imageUrl.isNotEmpty) {
+            // Check if the upload was successful
+            await createImageMsg(
+                imageUrl); // Create a new image message with the download URL
+          }
+        }
+      },
+    );
   }
 }
