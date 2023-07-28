@@ -108,14 +108,6 @@ class MessagesState extends State<ConvoInstance> {
     );
   }
 
-// 3. Logic for interacting with the database
-  Stream<DocumentSnapshot> getUserData(String userId) {
-    return Stream.fromFuture(
-        //get user data from firestore with his uid
-        FirebaseFirestore.instance.collection('users').doc(userId).get());
-  }
-
-//build the list of messages
   //build the list of messages
   Widget buildMessageList() {
     return StreamBuilder<QuerySnapshot>(
