@@ -300,7 +300,7 @@ class ImageSelect extends StatelessWidget {
 
   Future<String> uploadImageToFirebase(XFile imageFile) async {
     if (kIsWeb) {
-      return await uploadImageToFirebaseWeb(imageFile);
+      return await uploadImageToFirebaseWeb(conversationId, imageFile);
     } else {
       File file = File(imageFile.path); // Convert the XFile to a File
 
