@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +10,8 @@ import 'package:pleasepleasepleaseplease/uiFX.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
+
+import 'uploadimageweb.dart';
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
@@ -296,23 +299,29 @@ class ImageSelect extends StatelessWidget {
   final User user;
 
   Future<String> uploadImageToFirebase(XFile imageFile) async {
-    File file = File(imageFile.path); // Convert the XFile to a File
+    if (kIsWeb) {
+      return await uploadImageToFirebaseWeb(imageFile);
+    } else {
+      File file = File(imageFile.path); // Convert the XFile to a File
 
-    FirebaseStorage storage = FirebaseStorage.instance;
+      FirebaseStorage storage = FirebaseStorage.instance;
 
-    try {
-      await storage
-          .ref('conversations/$conversationId/${path.basename(imageFile.path)}')
-          .putFile(file);
+      try {
+        await storage
+            .ref(
+                'conversations/$conversationId/${path.basename(imageFile.path)}')
+            .putFile(file);
 
-      // Return the download URL
-      String downloadURL = await storage
-          .ref('conversations/$conversationId/${path.basename(imageFile.path)}')
-          .getDownloadURL();
-      return downloadURL;
-    } on FirebaseException catch (e) {
-      print(e);
-      return "";
+        // Return the download URL
+        String downloadURL = await storage
+            .ref(
+                'conversations/$conversationId/${path.basename(imageFile.path)}')
+            .getDownloadURL();
+        return downloadURL;
+      } on FirebaseException catch (e) {
+        print(e);
+        return "";
+      }
     }
   }
 
