@@ -11,19 +11,23 @@ Future<String> uploadImageToFirebaseWeb(
 
   FirebaseStorage storage = FirebaseStorage.instance;
 
+  // Get file extension
+  String fileExtension = extension(imageFile.name);
+
   try {
     // Upload the blob to Firebase Storage
     await storage
-        .ref('conversations/$conversationId/${basename(imageFile.path)}')
+        .ref(
+            'conversations/$conversationId/${basename(imageFile.path)}$fileExtension')
         .putBlob(blob);
 
     // Return the download URL
     String downloadURL = await storage
-        .ref('conversations/$conversationId/${basename(imageFile.path)}')
+        .ref(
+            'conversations/$conversationId/${basename(imageFile.path)}$fileExtension')
         .getDownloadURL();
     return downloadURL;
   } catch (e) {
-    print(e);
-    return "";
+    return "error";
   }
 }

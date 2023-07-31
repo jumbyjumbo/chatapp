@@ -10,7 +10,6 @@ import 'package:pleasepleasepleaseplease/uiFX.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-
 import 'uploadimageweb.dart';
 
 // 1. Declaration of the ConvoInstance widget and its properties.
@@ -136,14 +135,12 @@ class MessagesState extends State<ConvoInstance> {
           Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
 
           // check if the content is an image URL
-          bool isImageUrl = data['content'].toString().startsWith('http');
-
           Widget contentWidget;
-          if (isImageUrl) {
+          if (data['type'] == 'image') {
+            print("Image URL: ${data['content']}");
             contentWidget = Image.network(
               data['content'],
               fit: BoxFit.cover,
-              // include other properties as required
             );
           } else {
             contentWidget = Text(
@@ -171,8 +168,8 @@ class MessagesState extends State<ConvoInstance> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      //message sender's name
                       Text(
-                        //message sender's name
                         data['senderName'],
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
@@ -187,13 +184,9 @@ class MessagesState extends State<ConvoInstance> {
           );
         }).toList();
 
+        //add extra space at the end of messages
         messageWidgets.insert(
-            0,
-            const Padding(
-                padding: EdgeInsets.symmetric(
-                    vertical:
-                        30)) // This is the extra space at the beginning of the list.
-            );
+            0, const Padding(padding: EdgeInsets.symmetric(vertical: 30)));
 
         return ListView(
           reverse: true,
@@ -237,7 +230,7 @@ class MessagesState extends State<ConvoInstance> {
                         user: user,
                       )
                     : CupertinoButton(
-                        onPressed: sendMessage,
+                        onPressed: sendTextMessage,
                         child: const Text('Send',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                       );
@@ -248,7 +241,7 @@ class MessagesState extends State<ConvoInstance> {
   }
 
 //send a msg from the current user
-  Future<void> sendMessage() async {
+  Future<void> sendTextMessage() async {
     if (msgController.text.isNotEmpty) {
       final DateTime now = DateTime.now(); // creates a new timestamp
 
@@ -265,6 +258,7 @@ class MessagesState extends State<ConvoInstance> {
           .doc(widget.conversationId)
           .collection('messages')
           .add({
+        'type': 'text',
         'sender': user.uid,
         'senderName':
             userData['name'], // include the sender's name in the message data
@@ -302,20 +296,24 @@ class ImageSelect extends StatelessWidget {
     if (kIsWeb) {
       return await uploadImageToFirebaseWeb(conversationId, imageFile);
     } else {
-      File file = File(imageFile.path); // Convert the XFile to a File
-
       FirebaseStorage storage = FirebaseStorage.instance;
+
+      // Convert the XFile to a File
+      File file = File(imageFile.path);
+
+      // Extract the extension from the imageFile
+      String fileExtension = path.extension(imageFile.path);
 
       try {
         await storage
             .ref(
-                'conversations/$conversationId/${path.basename(imageFile.path)}')
+                'conversations/$conversationId/${path.basename(imageFile.path)}$fileExtension')
             .putFile(file);
 
         // Return the download URL
         String downloadURL = await storage
             .ref(
-                'conversations/$conversationId/${path.basename(imageFile.path)}')
+                'conversations/$conversationId/${path.basename(imageFile.path)}$fileExtension')
             .getDownloadURL();
         return downloadURL;
       } on FirebaseException catch (e) {
@@ -339,6 +337,7 @@ class ImageSelect extends StatelessWidget {
         .doc(conversationId)
         .collection('messages')
         .add({
+      'type': 'image',
       'sender': user.uid,
       'senderName': userData['name'],
       'senderProfilePicture': userData['profilepicture'],
