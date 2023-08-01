@@ -1,7 +1,13 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:path/path.dart' as path;
+import 'uploadimageweb.dart';
 
 class ConversationSettings extends StatefulWidget {
   final String conversationId;
@@ -17,14 +23,14 @@ class ConversationSettings extends StatefulWidget {
 
 class ConversationSettingsState extends State<ConversationSettings> {
   //convo name text field handler
-  late TextEditingController _nameController;
+  late TextEditingController convoNameController;
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
-    _nameController =
+    convoNameController =
         TextEditingController(text: widget.conversationData['name']);
   }
 
@@ -51,6 +57,7 @@ class ConversationSettingsState extends State<ConversationSettings> {
 
                   //display convo picture
                   return CircleAvatar(
+                    backgroundColor: Colors.transparent,
                     radius: 50,
                     backgroundImage: NetworkImage(convoData['convoPicture']),
                   );
@@ -61,6 +68,7 @@ class ConversationSettingsState extends State<ConversationSettings> {
                   context: context,
                   builder: (BuildContext context) => CupertinoActionSheet(
                     actions: [
+                      //set convo pic to default/remove custom convo pic
                       CupertinoActionSheetAction(
                         child: const Text('remove convo photo'),
                         onPressed: () {
@@ -69,14 +77,23 @@ class ConversationSettingsState extends State<ConversationSettings> {
                               .collection('conversations')
                               .doc(widget.conversationId)
                               .update({
-                            'convoPicture': '',
+                            'convoPicture':
+                                "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png",
                           });
                           Navigator.pop(context); // close the action sheet
                         },
                       ),
+                      //set convo pic to custom image/replace current convo pic
                       CupertinoActionSheetAction(
                         child: const Text('change convo photo'),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pop(context); // close the action sheet
+                          //picture selection TODO
+                          ImageSelect(
+                                  conversationId: widget.conversationId,
+                                  pathToStore: "convoProfilePics")
+                              .selectImage();
+                        },
                       ),
                     ],
                     cancelButton: CupertinoActionSheetAction(
@@ -119,6 +136,7 @@ class ConversationSettingsState extends State<ConversationSettings> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Column(
                                   children: <Widget>[
+                                    // Done and cancel buttons
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -138,7 +156,7 @@ class ConversationSettingsState extends State<ConversationSettings> {
                                                 .collection('conversations')
                                                 .doc(widget.conversationId)
                                                 .update({
-                                              'name': _nameController.text,
+                                              'name': convoNameController.text,
                                             });
                                             Navigator.pop(
                                                 context); // close the bottom sheet
@@ -146,8 +164,14 @@ class ConversationSettingsState extends State<ConversationSettings> {
                                         ),
                                       ],
                                     ),
+                                    // Text field to change convo name
                                     CupertinoTextFormFieldRow(
-                                      controller: _nameController,
+                                      decoration: BoxDecoration(
+                                        color: CupertinoColors
+                                            .extraLightBackgroundGray,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      controller: convoNameController,
                                       placeholder: 'Conversation Name',
                                     ),
                                   ],
@@ -174,7 +198,66 @@ class ConversationSettingsState extends State<ConversationSettings> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    convoNameController.dispose();
     super.dispose();
+  }
+}
+
+//image selection button to send images as messages
+class ImageSelect {
+  ImageSelect({required this.conversationId, required this.pathToStore});
+
+  final String conversationId;
+  final String pathToStore;
+
+  Future<String> uploadImageToFirebase(XFile imageFile) async {
+    if (kIsWeb) {
+      return await uploadImageToFirebaseWeb(
+          conversationId, imageFile, pathToStore);
+    } else {
+      FirebaseStorage storage = FirebaseStorage.instance;
+
+      // Convert the XFile to a File
+      File file = File(imageFile.path);
+
+      // Extract the extension from the imageFile
+      String fileExtension = path.extension(imageFile.path);
+      String fullPath =
+          'conversation/$conversationId/$pathToStore/${path.basename(imageFile.path)}$fileExtension';
+
+      //store the image in firebase storage
+      try {
+        await storage.ref(fullPath).putFile(file);
+
+        // Return the download URL
+        String downloadURL = await storage.ref(fullPath).getDownloadURL();
+        return downloadURL;
+      } on FirebaseException catch (e) {
+        print(e);
+        return "";
+      }
+    }
+  }
+
+  updateConvoProfilePic(String imageUrl, String conversationId) {
+    // Update conversation picture in Firestore
+    FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(conversationId)
+        .update({
+      'convoPicture': imageUrl,
+    });
+  }
+
+  Future<void> selectImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      String imageUrl =
+          await uploadImageToFirebase(image); // Upload the image to Firebase
+      if (imageUrl.isNotEmpty) {
+        await updateConvoProfilePic(imageUrl, conversationId);
+      }
+    }
   }
 }

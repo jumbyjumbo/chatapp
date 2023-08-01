@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
 Future<String> uploadImageToFirebaseWeb(
-    String conversationId, XFile imageFile) async {
+    String conversationId, XFile imageFile, String pathToStore) async {
   List<int> imageBytes = await imageFile.readAsBytes();
   var blob = Blob([imageBytes]);
 
@@ -13,19 +13,15 @@ Future<String> uploadImageToFirebaseWeb(
 
   // Get file extension
   String fileExtension = extension(imageFile.name);
+  String fullPath =
+      "conversations/$conversationId/$pathToStore/${basename(imageFile.path)}.$fileExtension";
 
   try {
-    // Upload the blob to Firebase Storage
-    await storage
-        .ref(
-            'conversations/$conversationId/${basename(imageFile.path)}$fileExtension')
-        .putBlob(blob);
+    // store the image at path
+    await storage.ref(fullPath).putBlob(blob);
 
     // Return the download URL
-    String downloadURL = await storage
-        .ref(
-            'conversations/$conversationId/${basename(imageFile.path)}$fileExtension')
-        .getDownloadURL();
+    String downloadURL = await storage.ref(fullPath).getDownloadURL();
     return downloadURL;
   } catch (e) {
     return "error";
