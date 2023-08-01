@@ -133,9 +133,20 @@ class MessagesState extends State<ConvoInstance> {
 
           //if the message is an image
           if (data['type'] == 'image') {
-            contentWidget = Image.network(
-              data['content'],
-              fit: BoxFit.cover,
+            contentWidget = LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(15.0), // Change as needed
+                  child: Container(
+                    //max height of image is 1/3 of the screen
+                    height: MediaQuery.of(context).size.height / 3,
+                    child: Image.network(
+                      data['content'],
+                      fit: BoxFit.scaleDown,
+                    ),
+                  ),
+                );
+              },
             );
           } else if (data['type'] == 'text') {
             //if the message is text

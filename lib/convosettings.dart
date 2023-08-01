@@ -16,7 +16,10 @@ class ConversationSettings extends StatefulWidget {
 }
 
 class ConversationSettingsState extends State<ConversationSettings> {
+  //convo name text field handler
   late TextEditingController _nameController;
+
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -27,16 +30,31 @@ class ConversationSettingsState extends State<ConversationSettings> {
 
   @override
   Widget build(BuildContext context) {
+    //stream convo's data
+    Stream<DocumentSnapshot> convoStream = firestore
+        .collection('conversations')
+        .doc(widget.conversationId)
+        .snapshots();
+    //menu
     return CupertinoPageScaffold(
       child: Center(
           child: Column(
         children: [
           //convo picture options
           CupertinoButton(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage:
-                    NetworkImage(widget.conversationData['convoPicture']),
+              child: StreamBuilder(
+                stream: convoStream,
+                builder: (context, snapshot) {
+                  //get convo data
+                  Map<String, dynamic> convoData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+
+                  //display convo picture
+                  return CircleAvatar(
+                    radius: 50,
+                    backgroundImage: NetworkImage(convoData['convoPicture']),
+                  );
+                },
               ),
               onPressed: () {
                 showCupertinoModalPopup(
@@ -45,7 +63,16 @@ class ConversationSettingsState extends State<ConversationSettings> {
                     actions: [
                       CupertinoActionSheetAction(
                         child: const Text('remove convo photo'),
-                        onPressed: () {},
+                        onPressed: () {
+                          // Update conversation picture in Firestore
+                          FirebaseFirestore.instance
+                              .collection('conversations')
+                              .doc(widget.conversationId)
+                              .update({
+                            'convoPicture': '',
+                          });
+                          Navigator.pop(context); // close the action sheet
+                        },
                       ),
                       CupertinoActionSheetAction(
                         child: const Text('change convo photo'),
@@ -64,7 +91,17 @@ class ConversationSettingsState extends State<ConversationSettings> {
 
           //convo name options
           CupertinoButton(
-              child: Text("${widget.conversationData['name']}"),
+              child: StreamBuilder(
+                stream: convoStream,
+                builder: (context, snapshot) {
+                  //get convo data
+                  Map<String, dynamic> convoData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+
+                  //display convo name
+                  return Text("${convoData['name']}");
+                },
+              ),
               onPressed: () {
                 showCupertinoModalPopup(
                   context: context,
