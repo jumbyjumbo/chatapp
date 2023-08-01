@@ -65,6 +65,7 @@ class MessagesState extends State<ConvoInstance> {
         backgroundColor: Colors.transparent,
 
         //convo name + convo settings/info tab button
+
         middle: CupertinoButton(
           padding: EdgeInsets.zero,
           child: StreamBuilder(
@@ -137,7 +138,7 @@ class MessagesState extends State<ConvoInstance> {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(15.0), // Change as needed
-                  child: Container(
+                  child: SizedBox(
                     //max height of image is 1/3 of the screen
                     height: MediaQuery.of(context).size.height / 3,
                     child: Image.network(
@@ -241,6 +242,7 @@ class MessagesState extends State<ConvoInstance> {
                       ? ImageSelect(
                           conversationId: widget.conversationId,
                           user: user,
+                          pathToStore: "imagesSent",
                         )
                       : CupertinoButton(
                           padding: EdgeInsets.zero,
@@ -301,15 +303,22 @@ class MessagesState extends State<ConvoInstance> {
 //image selection button to send images as messages
 class ImageSelect extends StatelessWidget {
   const ImageSelect(
-      {Key? key, required this.conversationId, required this.user})
+      {Key? key,
+      required this.conversationId,
+      required this.user,
+      required this.pathToStore})
       : super(key: key);
 
   final String conversationId;
   final User user;
+  final String pathToStore;
 
   Future<String> uploadImageToFirebase(XFile imageFile) async {
+    //the method is different in the browser
+    //it uses html pkg which needs to be isolated from rest of code
     if (kIsWeb) {
-      return await uploadImageToFirebaseWeb(conversationId, imageFile);
+      return await uploadImageToFirebaseWeb(
+          conversationId, imageFile, pathToStore);
     } else {
       FirebaseStorage storage = FirebaseStorage.instance;
 
@@ -318,22 +327,21 @@ class ImageSelect extends StatelessWidget {
 
       // Extract the extension from the imageFile
       String fileExtension = path.extension(imageFile.path);
+      //write the full path of the image
+      String fullPath =
+          'conversations/$conversationId/$pathToStore/${path.basename(imageFile.path)}$fileExtension';
 
       try {
-        await storage
-            .ref(
-                'conversations/$conversationId/${path.basename(imageFile.path)}$fileExtension')
-            .putFile(file);
+        //store the file at path
+        await storage.ref(fullPath).putFile(file);
 
-        // Return the download URL
-        String downloadURL = await storage
-            .ref(
-                'conversations/$conversationId/${path.basename(imageFile.path)}$fileExtension')
-            .getDownloadURL();
+        // get the image's download URL
+        String downloadURL = await storage.ref(fullPath).getDownloadURL();
+        //return it
         return downloadURL;
       } on FirebaseException catch (e) {
         print(e);
-        return "";
+        return "error";
       }
     }
   }
