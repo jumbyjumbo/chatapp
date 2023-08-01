@@ -202,6 +202,7 @@ class MessagesState extends State<ConvoInstance> {
       child: BlurEffectView(
         blurAmount: 10,
         child: CupertinoTextField(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: const BoxDecoration(
             border: null,
           ),
@@ -218,16 +219,20 @@ class MessagesState extends State<ConvoInstance> {
           suffix: ValueListenableBuilder<bool>(
               valueListenable: textFieldIsEmpty,
               builder: (context, value, child) {
-                return value
-                    ? ImageSelect(
-                        conversationId: widget.conversationId,
-                        user: user,
-                      )
-                    : CupertinoButton(
-                        onPressed: sendTextMessage,
-                        child: const Text('Send',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                      );
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: value
+                      ? ImageSelect(
+                          conversationId: widget.conversationId,
+                          user: user,
+                        )
+                      : CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: sendTextMessage,
+                          child: const Text('Send',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                );
               }),
         ),
       ),
@@ -351,6 +356,7 @@ class ImageSelect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoButton(
+      padding: EdgeInsets.zero,
       child: const Icon(CupertinoIcons.photo),
       onPressed: () async {
         final ImagePicker picker = ImagePicker();
