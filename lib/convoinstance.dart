@@ -128,20 +128,25 @@ class MessagesState extends State<ConvoInstance> {
             snapshot.data!.docs.map((DocumentSnapshot document) {
           Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
 
-          // check if the content is an image URL
+          // check if the content is an image or text
           Widget contentWidget;
+
+          //if the message is an image
           if (data['type'] == 'image') {
-            print("Image URL: ${data['content']}");
             contentWidget = Image.network(
               data['content'],
               fit: BoxFit.cover,
             );
-          } else {
+          } else if (data['type'] == 'text') {
+            //if the message is text
             contentWidget = Text(
               data['content'],
               softWrap: true,
               maxLines: 10,
             );
+          } else {
+            //if the message is neither text nor image
+            contentWidget = const SizedBox.shrink();
           }
 
           return Padding(
