@@ -148,7 +148,6 @@ class ConvoListState extends State<ConvoList> {
               ),
               onPressed: () {
                 // route to profile page
-                Navigator.of(context).pushNamed('/profile');
               },
             ),
 
@@ -157,7 +156,6 @@ class ConvoListState extends State<ConvoList> {
               padding: EdgeInsets.zero,
               child: const Icon(
                 CupertinoIcons.square_arrow_right,
-                color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
                 //logout

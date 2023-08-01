@@ -63,41 +63,35 @@ class MessagesState extends State<ConvoInstance> {
       //top navigation bar
       navigationBar: CupertinoNavigationBar(
         backgroundColor: Colors.transparent,
-        //convo name
-        middle: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('conversations')
-              .doc(widget.conversationId)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.active) {
-              return Text(snapshot.data?['name']);
-            } else {
-              return const Text('');
-            }
-          },
-        ),
-        //convo buttons
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: const Icon(CupertinoIcons.gear),
-              onPressed: () {
-                //show convo settings ui
-                showCupertinoModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return ConversationSettings(
-                      conversationId: widget.conversationId,
-                      conversationData: widget.conversationData,
-                    );
-                  },
+
+        //convo name + convo settings/info tab button
+        middle: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection('conversations')
+                .doc(widget.conversationId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.active) {
+                return Text(snapshot.data?['name']);
+              } else {
+                return const Text('');
+              }
+            },
+          ),
+          onPressed: () {
+            //show convo settings ui
+            showCupertinoModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return ConversationSettings(
+                  conversationId: widget.conversationId,
+                  conversationData: widget.conversationData,
                 );
               },
-            ),
-          ],
+            );
+          },
         ),
       ),
       //body (messages list/column)
