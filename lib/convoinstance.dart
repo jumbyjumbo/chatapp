@@ -65,7 +65,6 @@ class MessagesState extends State<ConvoInstance> {
         backgroundColor: Colors.transparent,
 
         //convo name + convo settings/info tab button
-
         middle: CupertinoButton(
           padding: EdgeInsets.zero,
           child: StreamBuilder(
@@ -93,6 +92,37 @@ class MessagesState extends State<ConvoInstance> {
               },
             );
           },
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () {
+            //show convo settings ui
+            showCupertinoModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return ConversationSettings(
+                  conversationId: widget.conversationId,
+                  conversationData: widget.conversationData,
+                );
+              },
+            );
+          },
+          child: StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection('conversations')
+                .doc(widget.conversationId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.active) {
+                return CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    backgroundImage:
+                        NetworkImage(snapshot.data?['convoPicture']));
+              } else {
+                return const SizedBox();
+              }
+            },
+          ),
         ),
       ),
       //body (messages list/column)
