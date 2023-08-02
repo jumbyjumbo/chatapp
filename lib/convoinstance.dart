@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:pleasepleasepleaseplease/profilepage.dart';
 import 'convoinfo.dart';
 import 'uiFX.dart';
 import 'dart:io';
@@ -197,10 +198,21 @@ class MessagesState extends State<ConvoInstance> {
             child: Row(
               children: [
                 //message sender's profile picture
-                CircleAvatar(
-                  backgroundImage: NetworkImage(data[
-                      'senderProfilePicture']), //get the profile picture from the message data
-                  backgroundColor: Colors.transparent, // no pp background
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ProfilePage(userId: data['sender']),
+                      ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(data[
+                        'senderProfilePicture']), //get the profile picture from the message data
+                    backgroundColor: Colors.transparent, // no pp background
+                  ),
                 ),
                 const SizedBox(
                     width:
