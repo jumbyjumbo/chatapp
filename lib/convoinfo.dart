@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,6 +28,13 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  //get user's profile picture
+  Future<String> getProfilePictureUrl(String userId) async {
+    DocumentSnapshot userDoc =
+        await firestore.collection('users').doc(userId).get();
+    return userDoc.get('profilepicture') as String;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,163 +51,217 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
         .snapshots();
     //menu
     return CupertinoPageScaffold(
-      child: Center(
-          child: Column(
+      child: Column(
         children: [
-          //convo picture options
-          CupertinoButton(
-              child: StreamBuilder(
-                stream: convoStream,
-                builder: (context, snapshot) {
-                  //get convo data
-                  Map<String, dynamic> convoData =
-                      snapshot.data!.data() as Map<String, dynamic>;
+          //convo pic and name
+          Column(
+            children: [
+              //convo picture options
+              CupertinoButton(
+                  child: StreamBuilder(
+                    stream: convoStream,
+                    builder: (context, snapshot) {
+                      //get convo data
+                      Map<String, dynamic> convoData =
+                          snapshot.data!.data() as Map<String, dynamic>;
 
-                  //display convo picture
-                  return CircleAvatar(
-                    backgroundColor: Colors.transparent,
-                    radius: 50,
-                    backgroundImage: NetworkImage(convoData['convoPicture']),
-                  );
-                },
-              ),
-              onPressed: () {
-                showCupertinoModalPopup(
-                  context: context,
-                  builder: (BuildContext context) => CupertinoActionSheet(
-                    actions: [
-                      //set convo pic to default/remove custom convo pic
-                      CupertinoActionSheetAction(
-                        child: const Text('remove convo photo'),
-                        onPressed: () {
-                          // Update conversation picture in Firestore
-                          FirebaseFirestore.instance
-                              .collection('conversations')
-                              .doc(widget.conversationId)
-                              .update({
-                            'convoPicture':
-                                "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png",
-                          });
-                          Navigator.pop(context); // close the action sheet
-                        },
-                      ),
-                      //set convo pic to custom image/replace current convo pic
-                      CupertinoActionSheetAction(
-                        child: const Text('change convo photo'),
-                        onPressed: () {
-                          Navigator.pop(context); // close the action sheet
-                          //picture selection TODO
-                          ImageSelect(
-                                  conversationId: widget.conversationId,
-                                  pathToStore: "convoProfilePics")
-                              .selectImage();
-                        },
-                      ),
-                    ],
-                    cancelButton: CupertinoActionSheetAction(
-                      child: const Text("cancel"),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
+                      //display convo picture
+                      return CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage:
+                            NetworkImage(convoData['convoPicture']),
+                      );
+                    },
                   ),
-                );
-              }),
+                  onPressed: () {
+                    showCupertinoModalPopup(
+                      context: context,
+                      builder: (BuildContext context) => CupertinoActionSheet(
+                        actions: [
+                          //set convo pic to default/remove custom convo pic
+                          CupertinoActionSheetAction(
+                            child: const Text('remove convo photo'),
+                            onPressed: () {
+                              // Update conversation picture in Firestore
+                              FirebaseFirestore.instance
+                                  .collection('conversations')
+                                  .doc(widget.conversationId)
+                                  .update({
+                                'convoPicture':
+                                    "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png",
+                              });
+                              Navigator.pop(context); // close the action sheet
+                            },
+                          ),
+                          //set convo pic to custom image/replace current convo pic
+                          CupertinoActionSheetAction(
+                            child: const Text('change convo photo'),
+                            onPressed: () {
+                              Navigator.pop(context); // close the action sheet
+                              //picture selection TODO
+                              ImageSelect(
+                                      conversationId: widget.conversationId,
+                                      pathToStore: "convoProfilePics")
+                                  .selectImage();
+                            },
+                          ),
+                        ],
+                        cancelButton: CupertinoActionSheetAction(
+                          child: const Text("cancel"),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    );
+                  }),
+              //convo name options
+              CupertinoButton(
+                  child: StreamBuilder(
+                    stream: convoStream,
+                    builder: (context, snapshot) {
+                      //get convo data
+                      Map<String, dynamic> convoData =
+                          snapshot.data!.data() as Map<String, dynamic>;
 
-          //convo name options
-          CupertinoButton(
-              child: StreamBuilder(
-                stream: convoStream,
-                builder: (context, snapshot) {
-                  //get convo data
-                  Map<String, dynamic> convoData =
-                      snapshot.data!.data() as Map<String, dynamic>;
-
-                  //display convo name
-                  return Text(
-                    "${convoData['name']}",
-                    style: const TextStyle(
-                      fontSize: 24,
-                    ),
-                  );
-                },
-              ),
-              onPressed: () {
-                showCupertinoModalPopup(
-                  context: context,
-                  builder: (BuildContext context) => CupertinoActionSheet(
-                    actions: [
-                      CupertinoActionSheetAction(
-                        child: const Text('change convo name'),
-                        onPressed: () {
-                          Navigator.pop(context); // close the action sheet
-                          // Show bottom sheet
-                          showCupertinoModalBottomSheet(
-                            context: context,
-                            builder: (context) {
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: <Widget>[
-                                    // Done and cancel buttons
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        CupertinoButton(
-                                          child: const Text('Cancel'),
-                                          onPressed: () {
-                                            Navigator.pop(
-                                                context); // close the bottom sheet
-                                          },
+                      //display convo name
+                      return Text(
+                        "${convoData['name']}",
+                        style: const TextStyle(
+                          fontSize: 18,
+                        ),
+                      );
+                    },
+                  ),
+                  onPressed: () {
+                    showCupertinoModalPopup(
+                      context: context,
+                      builder: (BuildContext context) => CupertinoActionSheet(
+                        actions: [
+                          CupertinoActionSheetAction(
+                            child: const Text('change convo name'),
+                            onPressed: () {
+                              Navigator.pop(context); // close the action sheet
+                              // Show bottom sheet
+                              showCupertinoModalBottomSheet(
+                                context: context,
+                                builder: (context) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: <Widget>[
+                                        // Done and cancel buttons
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            CupertinoButton(
+                                              child: const Text('Cancel'),
+                                              onPressed: () {
+                                                Navigator.pop(
+                                                    context); // close the bottom sheet
+                                              },
+                                            ),
+                                            CupertinoButton(
+                                              child: const Text('Done'),
+                                              onPressed: () {
+                                                // Update conversation name in Firestore
+                                                FirebaseFirestore.instance
+                                                    .collection('conversations')
+                                                    .doc(widget.conversationId)
+                                                    .update({
+                                                  'name':
+                                                      convoNameController.text,
+                                                });
+                                                Navigator.pop(
+                                                    context); // close the bottom sheet
+                                              },
+                                            ),
+                                          ],
                                         ),
-                                        CupertinoButton(
-                                          child: const Text('Done'),
-                                          onPressed: () {
-                                            // Update conversation name in Firestore
-                                            FirebaseFirestore.instance
-                                                .collection('conversations')
-                                                .doc(widget.conversationId)
-                                                .update({
-                                              'name': convoNameController.text,
-                                            });
-                                            Navigator.pop(
-                                                context); // close the bottom sheet
-                                          },
+                                        // Text field to change convo name
+                                        CupertinoTextFormFieldRow(
+                                          decoration: BoxDecoration(
+                                            color: CupertinoColors
+                                                .extraLightBackgroundGray,
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          controller: convoNameController,
+                                          placeholder: 'Conversation Name',
                                         ),
                                       ],
                                     ),
-                                    // Text field to change convo name
-                                    CupertinoTextFormFieldRow(
-                                      decoration: BoxDecoration(
-                                        color: CupertinoColors
-                                            .extraLightBackgroundGray,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      controller: convoNameController,
-                                      placeholder: 'Conversation Name',
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
+                          ),
+                        ],
+                        cancelButton: CupertinoActionSheetAction(
+                          child: const Text("cancel"),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
-                    ],
-                    cancelButton: CupertinoActionSheetAction(
-                      child: const Text("cancel"),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                );
-              })
+                    );
+                  }),
+            ],
+          ),
 
           //members horizontal list
+          SizedBox(
+            height: 80,
+            child: Container(
+              //border
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.grey,
+                    width: 0.5,
+                  ),
+                  top: BorderSide(
+                    color: Colors.grey,
+                    width: 0.5,
+                  ),
+                ),
+              ),
+
+              //list of members
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.conversationData['members'].length,
+                itemBuilder: (BuildContext context, int index) {
+                  return FutureBuilder(
+                    future: getProfilePictureUrl(
+                        widget.conversationData['members'][index]),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<String> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting ||
+                          !snapshot.hasData) {
+                        return const SizedBox();
+                      } else {
+                        return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 4),
+                            child: FittedBox(
+                              child: CircleAvatar(
+                                backgroundColor: Colors.transparent,
+                                foregroundImage:
+                                    NetworkImage(snapshot.data.toString()),
+                              ),
+                            ));
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
         ],
-      )),
+      ),
     );
   }
 

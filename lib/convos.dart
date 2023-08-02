@@ -11,6 +11,7 @@ import 'authservice.dart';
 import 'convoinstance.dart';
 import 'convoinfo.dart';
 import 'friendslist.dart';
+import 'profilepage.dart';
 
 class ConvoList extends StatefulWidget {
   const ConvoList({Key? key}) : super(key: key);
@@ -46,7 +47,7 @@ class ConvoListState extends State<ConvoList> {
         } else {
           User? user = snapshot.data;
           if (user != null) {
-            return _buildUserInterface(user, context);
+            return buildUserInterface(user, context);
           } else {
             // If the user is not logged in, navigate to the login page.
             Navigator.of(context).pushReplacementNamed('/login');
@@ -58,7 +59,7 @@ class ConvoListState extends State<ConvoList> {
     );
   }
 
-  Widget _buildUserInterface(User user, BuildContext context) {
+  Widget buildUserInterface(User user, BuildContext context) {
 // get screen width and height
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
@@ -149,7 +150,14 @@ class ConvoListState extends State<ConvoList> {
                 color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
-                // route to profile page
+                // go to profile page
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                      builder: (context) => ProfilePage(
+                            userId: user.uid,
+                          )),
+                );
               },
             ),
 
