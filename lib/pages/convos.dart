@@ -9,7 +9,7 @@ import 'package:pleasepleasepleaseplease/pages/userslist.dart';
 import '../backend stuff/authservice.dart';
 import 'convoinstance.dart';
 import 'convoinfo.dart';
-import 'friendslist.dart';
+import 'createconvo.dart';
 import 'profilepage.dart';
 
 class ConvoList extends StatefulWidget {
