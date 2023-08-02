@@ -362,18 +362,13 @@ class ImageSelect extends StatelessWidget {
       String fullPath =
           'conversations/$conversationId/$pathToStore/${path.basename(imageFile.path)}$fileExtension';
 
-      try {
-        //store the file at path
-        await storage.ref(fullPath).putFile(file);
+      //store the file at path
+      await storage.ref(fullPath).putFile(file);
 
-        // get the image's download URL
-        String downloadURL = await storage.ref(fullPath).getDownloadURL();
-        //return it
-        return downloadURL;
-      } on FirebaseException catch (e) {
-        print(e);
-        return "error";
-      }
+      // get the image's download URL
+      String downloadURL = await storage.ref(fullPath).getDownloadURL();
+      //return it
+      return downloadURL;
     }
   }
 

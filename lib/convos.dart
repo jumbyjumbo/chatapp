@@ -175,6 +175,7 @@ class ConvoListState extends State<ConvoList> {
           ],
         ),
       ),
+
       //convo list
       child: StreamBuilder<QuerySnapshot>(
         stream: conversationsStream,
@@ -197,33 +198,49 @@ class ConvoListState extends State<ConvoList> {
               Map<String, dynamic> conversationData =
                   conversationDoc.data() as Map<String, dynamic>;
 
-              return Container(
-                //border
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Colors.grey,
-                      width: 0.5,
+              return GestureDetector(
+                onTap: () {
+                  // Open conversation
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConvoInstance(
+                        conversationId: conversationDoc.id,
+                        conversationData: conversationData,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  //border
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey,
+                        width: 0.5,
+                      ),
                     ),
                   ),
-                ),
-                child: Slidable(
-                  //options on the left of convo (pin, settings page)
-                  startActionPane: ActionPane(
-                    extentRatio: 0.2,
-                    motion: const ScrollMotion(),
-                    children: <SlidableAction>[
-                      //pin convo
-                      SlidableAction(
-                          onPressed: (context) {
-                            // pin convo TODO
-                          },
-                          icon: CupertinoIcons.pin_fill),
+                  child: Slidable(
+                    key: Key(conversationDoc.id),
 
-                      //settings page
-                      SlidableAction(
+                    //options on the left of convo (pin, settings page)
+                    startActionPane: ActionPane(
+                      extentRatio: 0.2,
+                      motion: const ScrollMotion(),
+                      children: <SlidableAction>[
+                        //pin convo to the top of list
+                        SlidableAction(
+                            onPressed: (context) {
+                              // pin convo TODO
+                            },
+                            icon: CupertinoIcons.pin_fill),
+
+                        //get convo info
+                        SlidableAction(
+                          icon: CupertinoIcons.info_circle_fill,
                           onPressed: (context) {
-                            //show convo settings ui
+                            //open convo info page
                             showCupertinoModalBottomSheet(
                               context: context,
                               builder: (context) {
@@ -234,47 +251,36 @@ class ConvoListState extends State<ConvoList> {
                               },
                             );
                           },
-                          icon: CupertinoIcons.info_circle_fill),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
 
-                  //options on the right of convo (archive, leave,)
-                  endActionPane: ActionPane(
-                    extentRatio: 0.2,
-                    motion: const ScrollMotion(),
-                    children: <SlidableAction>[
-                      //archive convo
-                      SlidableAction(
+                    //options on the right of convo (archive, leave,)
+                    endActionPane: ActionPane(
+                      extentRatio: 0.2,
+                      motion: const ScrollMotion(),
+                      children: <SlidableAction>[
+                        //archive convo
+                        SlidableAction(
+                          icon: CupertinoIcons.archivebox_fill,
                           onPressed: (context) {
                             // archive convo TODO
                           },
-                          icon: CupertinoIcons.archivebox_fill),
+                        ),
 
-                      //leave convo
-                      SlidableAction(
+                        //leave convo
+                        SlidableAction(
+                          icon: CupertinoIcons
+                              .person_crop_circle_fill_badge_xmark,
                           onPressed: (context) {
                             // leave convo TODO
                           },
-                          icon: CupertinoIcons
-                              .person_crop_circle_fill_badge_xmark),
-                    ],
-                  ),
-                  key: Key(conversationDoc.id),
-                  //click to go to convo
-                  child: GestureDetector(
-                    onTap: () {
-                      // Open conversation
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ConvoInstance(
-                            conversationId: conversationDoc.id,
-                            conversationData: conversationData,
-                          ),
                         ),
-                      );
-                    },
-                    child: buildConvoWidget(
+                      ],
+                    ),
+
+                    //convo widget
+                    child: convoInstance(
                       conversationData,
                       conversationDoc.id,
                     ),
@@ -289,8 +295,7 @@ class ConvoListState extends State<ConvoList> {
   }
 
   //convo
-  Widget buildConvoWidget(
-      Map<String, dynamic> convoData, String conversationId) {
+  Widget convoInstance(Map<String, dynamic> convoData, String conversationId) {
     // get screen width and height
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;

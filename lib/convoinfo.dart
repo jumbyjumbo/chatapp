@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path/path.dart' as path;
+import 'profilepage.dart';
 import 'uploadimageweb.dart';
 
 class ConvoInfoPage extends StatefulWidget {
@@ -247,10 +247,23 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 4),
                             child: FittedBox(
-                              child: CircleAvatar(
-                                backgroundColor: Colors.transparent,
-                                foregroundImage:
-                                    NetworkImage(snapshot.data.toString()),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProfilePage(
+                                          userId:
+                                              widget.conversationData['members']
+                                                  [index]),
+                                    ),
+                                  );
+                                },
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.transparent,
+                                  foregroundImage:
+                                      NetworkImage(snapshot.data.toString()),
+                                ),
                               ),
                             ));
                       }
@@ -295,16 +308,11 @@ class ImageSelect {
           'conversation/$conversationId/$pathToStore/${path.basename(imageFile.path)}$fileExtension';
 
       //store the image in firebase storage
-      try {
-        await storage.ref(fullPath).putFile(file);
+      await storage.ref(fullPath).putFile(file);
 
-        // Return the download URL
-        String downloadURL = await storage.ref(fullPath).getDownloadURL();
-        return downloadURL;
-      } on FirebaseException catch (e) {
-        print(e);
-        return "";
-      }
+      // Return the download URL
+      String downloadURL = await storage.ref(fullPath).getDownloadURL();
+      return downloadURL;
     }
   }
 

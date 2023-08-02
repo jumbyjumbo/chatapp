@@ -1,4 +1,4 @@
-// web_image_handler.dart
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
