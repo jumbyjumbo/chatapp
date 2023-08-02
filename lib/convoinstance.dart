@@ -196,6 +196,7 @@ class MessagesState extends State<ConvoInstance> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             //message row
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 //message sender's profile picture
                 GestureDetector(
@@ -214,9 +215,11 @@ class MessagesState extends State<ConvoInstance> {
                     backgroundColor: Colors.transparent, // no pp background
                   ),
                 ),
-                const SizedBox(
-                    width:
-                        10), // gives some spacing between the pp and the message content
+
+                //spacing between profile picture ann message content
+                const SizedBox(width: 8),
+
+                //sender name + message content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,7 +230,7 @@ class MessagesState extends State<ConvoInstance> {
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       //message content
                       contentWidget,
                     ],
