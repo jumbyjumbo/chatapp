@@ -13,6 +13,7 @@ dependencies:
   firebase_storage: ^11.2.5
   flutter:
     sdk: flutter
+  flutter_slidable: ^3.0.0
   get_time_ago: ^1.2.4
   google_sign_in: ^6.1.4
   image_picker: ^1.0.1

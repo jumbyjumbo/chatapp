@@ -2,12 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/userslist.dart';
 
 import 'authservice.dart';
 import 'convoinstance.dart';
+import 'convosettings.dart';
 import 'friendslist.dart';
 
 class ConvoList extends StatefulWidget {
@@ -187,24 +189,87 @@ class ConvoListState extends State<ConvoList> {
               Map<String, dynamic> conversationData =
                   conversationDoc.data() as Map<String, dynamic>;
 
-              return Dismissible(
-                key: Key(conversationDoc.id),
-                child: GestureDetector(
-                  onTap: () {
-                    // Open conversation
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ConvoInstance(
-                          conversationId: conversationDoc.id,
-                          conversationData: conversationData,
+              return Container(
+                //border
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey,
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Slidable(
+                  //options on the left of convo (pin, settings page)
+                  startActionPane: ActionPane(
+                    extentRatio: 0.2,
+                    motion: const ScrollMotion(),
+                    children: <SlidableAction>[
+                      //pin convo
+                      SlidableAction(
+                          onPressed: (context) {
+                            // pin convo TODO
+                          },
+                          icon: CupertinoIcons.pin_fill),
+
+                      //settings page
+                      SlidableAction(
+                          onPressed: (context) {
+                            //show convo settings ui
+                            showCupertinoModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return ConversationSettings(
+                                    conversationId: conversations[index].id,
+                                    conversationData: conversations[index]
+                                        .data() as Map<String, dynamic>);
+                              },
+                            );
+                          },
+                          icon: CupertinoIcons.square_list_fill),
+                    ],
+                  ),
+
+                  //options on the right of convo (archive, leave,)
+                  endActionPane: ActionPane(
+                    extentRatio: 0.2,
+                    motion: const ScrollMotion(),
+                    children: <SlidableAction>[
+                      //archive convo
+                      SlidableAction(
+                          onPressed: (context) {
+                            // archive convo TODO
+                          },
+                          icon: CupertinoIcons.archivebox_fill),
+
+                      //leave convo
+                      SlidableAction(
+                          onPressed: (context) {
+                            // leave convo TODO
+                          },
+                          icon: CupertinoIcons
+                              .person_crop_circle_fill_badge_xmark),
+                    ],
+                  ),
+                  key: Key(conversationDoc.id),
+                  //click to go to convo
+                  child: GestureDetector(
+                    onTap: () {
+                      // Open conversation
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ConvoInstance(
+                            conversationId: conversationDoc.id,
+                            conversationData: conversationData,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: _buildConvoWidget(
-                    conversationData,
-                    conversationDoc.id,
+                      );
+                    },
+                    child: buildConvoWidget(
+                      conversationData,
+                      conversationDoc.id,
+                    ),
                   ),
                 ),
               );
@@ -216,7 +281,7 @@ class ConvoListState extends State<ConvoList> {
   }
 
   //convo
-  Widget _buildConvoWidget(
+  Widget buildConvoWidget(
       Map<String, dynamic> convoData, String conversationId) {
     // get screen width and height
     double screenHeight = MediaQuery.of(context).size.height;
@@ -235,104 +300,93 @@ class ConvoListState extends State<ConvoList> {
               ? mobileFontSize
               : screenWidthUnit * 1.25),
     );
+
     //return convo widget
-    return Container(
-      //border
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey,
-            width: 0.5,
-          ),
-        ),
+    return Padding(
+      padding: EdgeInsets.all(
+        screenHeightUnit,
       ),
-      //padding
-      child: Padding(
-        padding: EdgeInsets.all(
-          screenHeightUnit,
-        ),
 
-        //convo instance display
-        child: Row(
-          children: [
-            CircleAvatar(
-                radius: screenHeightUnit * 4,
-                backgroundColor: Colors.transparent,
-                backgroundImage: NetworkImage(
-                  convoData['convoPicture'],
-                )),
-            SizedBox(
-              width: screenHeightUnit * 2,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  convoData['name'],
-                  style: chatTextStyle.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: chatTextStyle.fontSize! * 1.1,
-                  ),
+      //convo instance display
+      child: Row(
+        children: [
+          CircleAvatar(
+              radius: screenHeightUnit * 4,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(
+                convoData['convoPicture'],
+              )),
+          SizedBox(
+            width: screenHeightUnit * 2,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                convoData['name'],
+                style: chatTextStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: chatTextStyle.fontSize! * 1.1,
                 ),
-                // StreamBuilder to display the last message
-                StreamBuilder<DocumentSnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('conversations')
-                      .doc(conversationId)
-                      .collection("messages")
-                      .doc(convoData['lastMessage'])
-                      .snapshots(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting ||
-                        convoData['lastMessage'] == null ||
-                        !snapshot.hasData) {
-                      //show nothing
-                      return Container(color: Colors.transparent);
-                    }
+              ),
+              // StreamBuilder to display the last message
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('conversations')
+                    .doc(conversationId)
+                    .collection("messages")
+                    .doc(convoData['lastMessage'])
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      convoData['lastMessage'] == null ||
+                      !snapshot.hasData) {
+                    //show nothing
+                    return Container(color: Colors.transparent);
+                  }
 
-                    // Get the last message data
-                    Map<String, dynamic> lastMessageData =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    // Return a text widget with the last message's content, sender and timestamp
-                    return Row(
-                      children: [
-                        FutureBuilder<String>(
-                          future: getUserName(lastMessageData['sender']),
-                          builder: (BuildContext context,
-                              AsyncSnapshot<String> snapshot) {
-                            String content = lastMessageData['content'];
-                            if (content.length > 20) {
-                              content = '${content.substring(0, 20)}...';
-                            }
-                            // If there are more than 2 members in the conversation, prepend the sender's name to the message content.
-                            String prefix = (convoData['members'].length > 2 &&
-                                    snapshot.hasData)
-                                ? "${snapshot.data}:"
-                                : "";
-                            return Text(
-                              "$prefix$content",
-                              style: chatTextStyle.copyWith(
-                                color: Colors.grey,
-                              ),
-                            );
-                          },
+                  // Get the last message data
+                  Map<String, dynamic> lastMessageData =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  // Return a text widget with the last message's content, sender and timestamp
+                  return Row(
+                    children: [
+                      FutureBuilder<String>(
+                        future: getUserName(lastMessageData['sender']),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<String> snapshot) {
+                          String content = lastMessageData['content'];
+                          if (content.length > 20) {
+                            content = '${content.substring(0, 20)}...';
+                          }
+                          // If there are more than 2 members in the conversation, prepend the sender's name to the message content.
+                          String prefix = (convoData['members'].length > 2 &&
+                                  snapshot.hasData)
+                              ? "${snapshot.data}:"
+                              : "";
+                          return Text(
+                            "$prefix$content",
+                            style: chatTextStyle.copyWith(
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                      // Display the timestamp in "time ago" format
+                      Text(
+                        "  •  ${GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
+                        style: chatTextStyle.copyWith(
+                          color: Colors.grey,
                         ),
-                        // Display the timestamp in "time ago" format
-                        Text(
-                          "  •  ${GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
-                          style: chatTextStyle.copyWith(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:pleasepleasepleaseplease/convosettings.dart';
-import 'package:pleasepleasepleaseplease/uiFX.dart';
+import 'convosettings.dart';
+import 'uiFX.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
@@ -167,7 +167,7 @@ class MessagesState extends State<ConvoInstance> {
             contentWidget = LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 return ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0), // Change as needed
+                  borderRadius: BorderRadius.circular(16.0), // Change as needed
                   child: SizedBox(
                     //max height of image is 1/3 of the screen
                     height: MediaQuery.of(context).size.height / 3,
@@ -192,7 +192,7 @@ class MessagesState extends State<ConvoInstance> {
           }
 
           return Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             //message row
             child: Row(
               children: [
@@ -215,6 +215,7 @@ class MessagesState extends State<ConvoInstance> {
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
+                      const SizedBox(height: 8),
                       //message content
                       contentWidget,
                     ],

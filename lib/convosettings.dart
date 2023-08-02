@@ -116,7 +116,12 @@ class ConversationSettingsState extends State<ConversationSettings> {
                       snapshot.data!.data() as Map<String, dynamic>;
 
                   //display convo name
-                  return Text("${convoData['name']}");
+                  return Text(
+                    "${convoData['name']}",
+                    style: const TextStyle(
+                      fontSize: 24,
+                    ),
+                  );
                 },
               ),
               onPressed: () {
