@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'convosettings.dart';
+import 'convoinfo.dart';
 import 'uiFX.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -85,7 +85,7 @@ class MessagesState extends State<ConvoInstance> {
             showCupertinoModalBottomSheet(
               context: context,
               builder: (context) {
-                return ConversationSettings(
+                return ConvoInfoPage(
                   conversationId: widget.conversationId,
                   conversationData: widget.conversationData,
                 );
@@ -100,7 +100,7 @@ class MessagesState extends State<ConvoInstance> {
             showCupertinoModalBottomSheet(
               context: context,
               builder: (context) {
-                return ConversationSettings(
+                return ConvoInfoPage(
                   conversationId: widget.conversationId,
                   conversationData: widget.conversationData,
                 );

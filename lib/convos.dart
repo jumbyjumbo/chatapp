@@ -9,7 +9,7 @@ import 'package:pleasepleasepleaseplease/userslist.dart';
 
 import 'authservice.dart';
 import 'convoinstance.dart';
-import 'convosettings.dart';
+import 'convoinfo.dart';
 import 'friendslist.dart';
 
 class ConvoList extends StatefulWidget {
@@ -219,14 +219,14 @@ class ConvoListState extends State<ConvoList> {
                             showCupertinoModalBottomSheet(
                               context: context,
                               builder: (context) {
-                                return ConversationSettings(
+                                return ConvoInfoPage(
                                     conversationId: conversations[index].id,
                                     conversationData: conversations[index]
                                         .data() as Map<String, dynamic>);
                               },
                             );
                           },
-                          icon: CupertinoIcons.square_list_fill),
+                          icon: CupertinoIcons.info_circle_fill),
                     ],
                   ),
 

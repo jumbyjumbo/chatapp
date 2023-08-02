@@ -9,19 +9,19 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path/path.dart' as path;
 import 'uploadimageweb.dart';
 
-class ConversationSettings extends StatefulWidget {
+class ConvoInfoPage extends StatefulWidget {
   final String conversationId;
   final Map<String, dynamic> conversationData;
 
-  const ConversationSettings(
+  const ConvoInfoPage(
       {Key? key, required this.conversationId, required this.conversationData})
       : super(key: key);
 
   @override
-  ConversationSettingsState createState() => ConversationSettingsState();
+  ConvoInfoPageState createState() => ConvoInfoPageState();
 }
 
-class ConversationSettingsState extends State<ConversationSettings> {
+class ConvoInfoPageState extends State<ConvoInfoPage> {
   //convo name text field handler
   late TextEditingController convoNameController;
 
@@ -196,6 +196,8 @@ class ConversationSettingsState extends State<ConversationSettings> {
                   ),
                 );
               })
+
+          //members horizontal list
         ],
       )),
     );
