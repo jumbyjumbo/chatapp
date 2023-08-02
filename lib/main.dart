@@ -2,10 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'firebase_options.dart';
-import 'authservice.dart';
-import 'login.dart';
-import 'convos.dart';
+import 'backend stuff/firebase_options.dart';
+import 'backend stuff/authservice.dart';
+import 'pages/login.dart';
+import 'pages/convos.dart';
 
 void main() async {
   //make sure widgets load before anything else

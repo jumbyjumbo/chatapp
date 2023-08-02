@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:pleasepleasepleaseplease/profilepage.dart';
+import 'package:pleasepleasepleaseplease/pages/profilepage.dart';
+import '/ui stuff/uifx.dart';
 import 'convoinfo.dart';
-import 'uiFX.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-import 'uploadimageweb.dart';
+import '/backend stuff/uploadimageweb.dart';
 
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {

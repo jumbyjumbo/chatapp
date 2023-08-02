@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path/path.dart' as path;
 import 'profilepage.dart';
-import 'uploadimageweb.dart';
+import '../backend stuff/uploadimageweb.dart';
 
 class ConvoInfoPage extends StatefulWidget {
   final String conversationId;

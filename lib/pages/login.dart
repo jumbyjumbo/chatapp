@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'authservice.dart';
+import '../backend stuff/authservice.dart';
 
 // Define Login widget which is a StatefulWidget to handle mutable states
 class Login extends StatefulWidget {
