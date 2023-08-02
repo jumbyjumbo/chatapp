@@ -355,6 +355,12 @@ class ConvoListState extends State<ConvoList> {
                   Map<String, dynamic> lastMessageData =
                       snapshot.data!.data() as Map<String, dynamic>;
                   // Return a text widget with the last message's content, sender and timestamp
+
+                  // Get how long ago the last msg was sent
+                  final int secondsAgo = DateTime.now()
+                      .difference(lastMessageData['timestamp'].toDate())
+                      .inSeconds;
+
                   return Row(
                     children: [
                       FutureBuilder<String>(
@@ -378,9 +384,10 @@ class ConvoListState extends State<ConvoList> {
                           );
                         },
                       ),
+
                       // Display the timestamp in "time ago" format
                       Text(
-                        "  •  ${GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
+                        "  •  ${secondsAgo < 10 ? "just now" : GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
                         style: chatTextStyle.copyWith(
                           color: Colors.grey,
                         ),
