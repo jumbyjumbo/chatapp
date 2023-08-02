@@ -82,30 +82,6 @@ class ConvoListState extends State<ConvoList> {
     return CupertinoPageScaffold(
       //top menu bar
       navigationBar: CupertinoNavigationBar(
-        //display logged in user's name in the left center in bold, large font
-        leading: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-            //if snapshot is loading or has no data, show nothing
-            if (snapshot.connectionState == ConnectionState.waiting ||
-                !snapshot.hasData) {
-              //show nothing
-              return Container(color: Colors.transparent);
-            }
-            //display user's name
-            return FittedBox(
-              fit: BoxFit.contain,
-              child: Text(snapshot.data!['name'],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  )),
-            );
-          },
-        ),
         //buttons on the right side of the top menu bar
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -114,7 +90,7 @@ class ConvoListState extends State<ConvoList> {
             CupertinoButton(
               padding: EdgeInsets.zero,
               child: const Icon(
-                CupertinoIcons.paperplane_fill,
+                CupertinoIcons.plus_app_fill,
                 color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
@@ -131,7 +107,7 @@ class ConvoListState extends State<ConvoList> {
             CupertinoButton(
               padding: EdgeInsets.zero,
               child: const Icon(
-                CupertinoIcons.bolt_fill,
+                CupertinoIcons.person_add_solid,
                 color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
