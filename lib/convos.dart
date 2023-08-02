@@ -6,7 +6,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/userslist.dart';
-
 import 'authservice.dart';
 import 'convoinstance.dart';
 import 'convoinfo.dart';
@@ -27,6 +26,12 @@ class ConvoListState extends State<ConvoList> {
   void initState() {
     super.initState();
     _authService = AuthService(FirebaseAuth.instance);
+  }
+
+  Future<String> getUserProfilePic(String uid) async {
+    final userDocument =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    return userDocument.data()?['profilepicture'] ?? '';
   }
 
   Future<String> getUserName(String uid) async {
@@ -118,25 +123,6 @@ class ConvoListState extends State<ConvoList> {
               },
             ),
 
-            //profile button
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: const Icon(
-                CupertinoIcons.profile_circled,
-                color: CupertinoColors.activeBlue,
-              ),
-              onPressed: () {
-                // go to profile page
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                      builder: (context) => ProfilePage(
-                            userId: user.uid,
-                          )),
-                );
-              },
-            ),
-
             //logout button
             CupertinoButton(
               padding: EdgeInsets.zero,
@@ -147,6 +133,36 @@ class ConvoListState extends State<ConvoList> {
                 //logout
                 FirebaseAuth.instance.signOut();
               },
+            ),
+
+            //profile button
+            GestureDetector(
+              onTap: () {
+                // Go to profile page
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                      builder: (context) => ProfilePage(
+                            userId: user.uid,
+                          )),
+                );
+              },
+              child: FutureBuilder<String>(
+                future: getUserProfilePic(user.uid),
+                builder:
+                    (BuildContext context, AsyncSnapshot<String> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      !snapshot.hasData) {
+                    return const Icon(
+                        CupertinoIcons.profile_circled); // Loading indicator
+                  } else {
+                    return CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: NetworkImage(snapshot.data!),
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),
