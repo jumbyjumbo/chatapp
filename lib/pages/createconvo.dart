@@ -21,9 +21,8 @@ class FriendsList extends StatefulWidget {
 }
 
 class FriendsListState extends State<FriendsList> {
-  final FirebaseFirestore db = FirebaseFirestore.instance;
-
-  ValueNotifier<List<String>> selectedUsers = ValueNotifier<List<String>>([]);
+  //list of friends to be added to the new convo
+  List<String> selectedFriends = [];
 
   // Create a new conversation with the selected users + current user
   Future<void> createConversation(List<String> memberIds) async {
@@ -54,34 +53,19 @@ class FriendsListState extends State<FriendsList> {
         'convos': FieldValue.arrayUnion([conversationDoc.id]),
       });
     }
-    // Reset selected users
-    selectedUsers.value = [];
-
     // Pop the create convo page
-    //Navigator.pop(context);
-  }
-
-  void updateSelectedUsers(String userId, bool isSelected) {
-    if (isSelected) {
-      selectedUsers.value.add(userId);
-    } else {
-      selectedUsers.value.removeWhere((user) => user == userId);
-    }
-    selectedUsers.value =
-        List.from(selectedUsers.value); // Set a new list instance
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: db.collection('users').doc(widget.userId).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .snapshots(),
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting ||
-            !snapshot.hasData) {
-          return Container(color: Colors.transparent);
-        }
-
         List<String> friends = List<String>.from(snapshot.data!.get('friends'));
 
         return Column(
@@ -94,19 +78,23 @@ class FriendsListState extends State<FriendsList> {
 
             //search bar TODO
 
+            //list of friends
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
+                separatorBuilder: (BuildContext context, int index) {
+                  return Divider(); //
+                },
                 itemCount: friends.length,
                 itemBuilder: (context, index) {
                   return FutureBuilder<DocumentSnapshot>(
-                    future: db.collection('users').doc(friends[index]).get(),
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(friends[index])
+                        .get(),
                     builder: (BuildContext context,
                         AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-                      if (snapshot.hasError) {
-                        return Text("Error: ${snapshot.error}");
+                      if (!snapshot.hasData) {
+                        return const SizedBox.shrink();
                       }
 
                       final friend = Friend(
@@ -115,12 +103,17 @@ class FriendsListState extends State<FriendsList> {
                         profilePicture: snapshot.data!.get('profilepicture'),
                       );
 
-                      return FriendWidget(
+                      return FriendInstanceWidget(
                         friend: friend,
-                        initiallySelected:
-                            selectedUsers.value.contains(friends[index]),
+                        initiallySelected: selectedFriends.contains(friend.id),
                         onSelectedChanged: (isSelected) {
-                          updateSelectedUsers(friends[index], isSelected);
+                          setState(() {
+                            if (isSelected) {
+                              selectedFriends.add(friend.id);
+                            } else {
+                              selectedFriends.remove(friend.id);
+                            }
+                          });
                         },
                       );
                     },
@@ -131,19 +124,15 @@ class FriendsListState extends State<FriendsList> {
             //create convo button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: ValueListenableBuilder<List<String>>(
-                valueListenable: selectedUsers,
-                builder: (context, selectedUsersValue, child) {
-                  return CupertinoButton(
-                    color: Colors.blue,
-                    onPressed: selectedUsersValue.isEmpty
-                        ? null
-                        : () {
-                            createConversation(selectedUsersValue);
-                          },
-                    child: const Center(child: Text('create convo')),
-                  );
-                },
+              child: CupertinoButton(
+                color: Colors.blue,
+                onPressed: selectedFriends.isEmpty
+                    ? null
+                    : () {
+                        createConversation(
+                            selectedFriends); //create the convo with the selected friends
+                      },
+                child: const Center(child: Text('create convo')),
               ),
             ),
           ],
@@ -153,12 +142,12 @@ class FriendsListState extends State<FriendsList> {
   }
 }
 
-class FriendWidget extends StatefulWidget {
+class FriendInstanceWidget extends StatefulWidget {
   final Friend friend;
   final bool initiallySelected;
   final ValueChanged<bool> onSelectedChanged;
 
-  const FriendWidget({
+  const FriendInstanceWidget({
     Key? key,
     required this.friend,
     this.initiallySelected = false,
@@ -166,10 +155,10 @@ class FriendWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  FriendWidgetState createState() => FriendWidgetState();
+  FriendInstanceWidgetState createState() => FriendInstanceWidgetState();
 }
 
-class FriendWidgetState extends State<FriendWidget> {
+class FriendInstanceWidgetState extends State<FriendInstanceWidget> {
   late bool isSelected;
 
   @override

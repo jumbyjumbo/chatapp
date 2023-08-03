@@ -28,10 +28,13 @@ class ConvoListState extends State<ConvoList> {
     _authService = AuthService(FirebaseAuth.instance);
   }
 
-  Future<String> getUserProfilePic(String uid) async {
-    final userDocument =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    return userDocument.data()?['profilepicture'] ?? '';
+  //stream for user profile picture
+  Stream<String> streamUserProfilePic(String userId) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) => snapshot.data()?['profilepicture'] ?? '');
   }
 
   Future<String> getUserName(String uid) async {
@@ -147,14 +150,12 @@ class ConvoListState extends State<ConvoList> {
                           )),
                 );
               },
-              child: FutureBuilder<String>(
-                future: getUserProfilePic(user.uid),
+              child: StreamBuilder<String>(
+                stream: streamUserProfilePic(user.uid),
                 builder:
                     (BuildContext context, AsyncSnapshot<String> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting ||
-                      !snapshot.hasData) {
-                    return const Icon(
-                        CupertinoIcons.profile_circled); // Loading indicator
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
                   } else {
                     return CircleAvatar(
                       backgroundColor: Colors.transparent,
