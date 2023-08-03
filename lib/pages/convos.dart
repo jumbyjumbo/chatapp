@@ -219,18 +219,20 @@ class ConvoListState extends State<ConvoList> {
 
                     //options on the left of convo (pin, settings page)
                     startActionPane: ActionPane(
-                      extentRatio: 0.2,
+                      extentRatio: 1 / 3,
                       motion: const ScrollMotion(),
                       children: <SlidableAction>[
                         //pin convo to the top of list
-                        SlidableAction(
-                            onPressed: (context) {
-                              // pin convo TODO
-                            },
-                            icon: CupertinoIcons.pin_fill),
+                        // SlidableAction(
+                        //     backgroundColor: CupertinoColors.activeBlue,
+                        //     onPressed: (context) {
+                        //       //pin convo to top of list
+                        //     },
+                        //     icon: CupertinoIcons.pin_fill),
 
                         //get convo info
                         SlidableAction(
+                          backgroundColor: CupertinoColors.activeBlue,
                           icon: CupertinoIcons.info_circle_fill,
                           onPressed: (context) {
                             //open convo info page
@@ -250,23 +252,30 @@ class ConvoListState extends State<ConvoList> {
 
                     //options on the right of convo (archive, leave,)
                     endActionPane: ActionPane(
-                      extentRatio: 0.2,
+                      extentRatio: 1 / 3,
                       motion: const ScrollMotion(),
                       children: <SlidableAction>[
-                        //archive convo
-                        SlidableAction(
-                          icon: CupertinoIcons.archivebox_fill,
-                          onPressed: (context) {
-                            // archive convo TODO
-                          },
-                        ),
+                        //archive convo TODO
+                        // SlidableAction(
+                        //   icon: CupertinoIcons.archivebox_fill,
+                        //   onPressed: (context) {
+                        //     // tag convo as archived
+                        //   },
+                        // ),
 
                         //leave convo
                         SlidableAction(
+                          backgroundColor: Colors.red,
                           icon: CupertinoIcons
                               .person_crop_circle_fill_badge_xmark,
                           onPressed: (context) {
-                            // leave convo TODO
+                            // remove current user from the conversation
+                            FirebaseFirestore.instance
+                                .collection('conversations')
+                                .doc(conversationDoc.id)
+                                .update({
+                              'members': FieldValue.arrayRemove([user.uid])
+                            });
                           },
                         ),
                       ],
@@ -276,6 +285,7 @@ class ConvoListState extends State<ConvoList> {
                     child: convoInstance(
                       conversationData,
                       conversationDoc.id,
+                      user.uid,
                     ),
                   ),
                 ),
@@ -288,7 +298,8 @@ class ConvoListState extends State<ConvoList> {
   }
 
   //convo
-  Widget convoInstance(Map<String, dynamic> convoData, String conversationId) {
+  Widget convoInstance(
+      Map<String, dynamic> convoData, String conversationId, String userId) {
     // get screen width and height
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
@@ -372,9 +383,13 @@ class ConvoListState extends State<ConvoList> {
                           if (content.length > 20) {
                             content = '${content.substring(0, 20)}...';
                           }
-                          // If there are more than 2 members in the conversation, prepend the sender's name to the message content.
+                          // If there are more than 2 members in the conversation,
+                          //or if msg is not sent by the current user,
+                          //prepend the sender's name to the message content.
+
                           String prefix = (convoData['members'].length > 2 &&
-                                  snapshot.hasData)
+                                  snapshot.hasData &&
+                                  lastMessageData['sender'] != userId)
                               ? "${snapshot.data}:"
                               : "";
                           return Text(

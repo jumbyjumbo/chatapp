@@ -80,45 +80,49 @@ class FriendsListState extends State<FriendsList> {
 
             //list of friends
             Expanded(
-              child: ListView.separated(
-                separatorBuilder: (BuildContext context, int index) {
-                  return Divider(); //
-                },
-                itemCount: friends.length,
-                itemBuilder: (context, index) {
-                  return FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(friends[index])
-                        .get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (!snapshot.hasData) {
-                        return const SizedBox.shrink();
-                      }
+              child: Container(
+                decoration: const BoxDecoration(
+                  border:
+                      Border(top: BorderSide(width: 0.5, color: Colors.grey)),
+                ),
+                child: ListView.builder(
+                  itemCount: friends.length,
+                  itemBuilder: (context, index) {
+                    return FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(friends[index])
+                          .get(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
 
-                      final friend = Friend(
-                        id: friends[index],
-                        name: snapshot.data!.get('name'),
-                        profilePicture: snapshot.data!.get('profilepicture'),
-                      );
+                        final friend = Friend(
+                          id: friends[index],
+                          name: snapshot.data!.get('name'),
+                          profilePicture: snapshot.data!.get('profilepicture'),
+                        );
 
-                      return FriendInstanceWidget(
-                        friend: friend,
-                        initiallySelected: selectedFriends.contains(friend.id),
-                        onSelectedChanged: (isSelected) {
-                          setState(() {
-                            if (isSelected) {
-                              selectedFriends.add(friend.id);
-                            } else {
-                              selectedFriends.remove(friend.id);
-                            }
-                          });
-                        },
-                      );
-                    },
-                  );
-                },
+                        return FriendInstanceWidget(
+                          friend: friend,
+                          initiallySelected:
+                              selectedFriends.contains(friend.id),
+                          onSelectedChanged: (isSelected) {
+                            setState(() {
+                              if (isSelected) {
+                                selectedFriends.add(friend.id);
+                              } else {
+                                selectedFriends.remove(friend.id);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
             //create convo button
@@ -177,16 +181,24 @@ class FriendInstanceWidgetState extends State<FriendInstanceWidget> {
         });
       },
       child: Container(
-        color: isSelected ? Colors.grey.withOpacity(0.2) : Colors.transparent,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.grey.withOpacity(0.2) : Colors.transparent,
+          //border on the bottom 0.5 grey
+          border:
+              const Border(bottom: BorderSide(width: 0.5, color: Colors.grey)),
+        ),
+        //padding for the friend card
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(children: [
+            //friend pp
             CircleAvatar(
               backgroundColor: Colors.transparent,
               backgroundImage: NetworkImage(widget.friend.profilePicture),
               radius: 25,
             ),
             const SizedBox(width: 20),
+            //friend name
             Text(widget.friend.name),
           ]),
         ),

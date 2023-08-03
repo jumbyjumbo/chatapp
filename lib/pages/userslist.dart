@@ -61,44 +61,58 @@ class UsersList extends StatelessWidget {
 
                 //users list
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      // get the user data
-                      Map<String, dynamic> user =
-                          users[index].data() as Map<String, dynamic>;
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                          top: BorderSide(width: 0.5, color: Colors.grey)),
+                    ),
+                    child: ListView.builder(
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        // get the user data
+                        Map<String, dynamic> user =
+                            users[index].data() as Map<String, dynamic>;
 
-                      // get the user's data
-                      String userName = user['name'];
-                      String userPic = user['profilepicture'];
-                      String userUid = users[index].id;
+                        // get the user's data
+                        String userName = user['name'];
+                        String userPic = user['profilepicture'];
+                        String userUid = users[index].id;
 
-                      return GestureDetector(
-                        onTap: () async {
-                          // Add each user to the other's friends list
-                          await db
-                              .collection('users')
-                              .doc(currentUserUid)
-                              .update({
-                            'friends': FieldValue.arrayUnion([userUid])
-                          });
-                          await db.collection('users').doc(userUid).update({
-                            'friends': FieldValue.arrayUnion([currentUserUid])
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(children: [
-                            CircleAvatar(
-                              backgroundImage: NetworkImage(userPic),
-                              radius: 25,
+                        return GestureDetector(
+                          onTap: () async {
+                            // Add each user to the other's friends list
+                            await db
+                                .collection('users')
+                                .doc(currentUserUid)
+                                .update({
+                              'friends': FieldValue.arrayUnion([userUid])
+                            });
+                            await db.collection('users').doc(userUid).update({
+                              'friends': FieldValue.arrayUnion([currentUserUid])
+                            });
+                          },
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(
+                                      width: 0.5, color: Colors.grey)),
                             ),
-                            const SizedBox(width: 20),
-                            Text(userName),
-                          ]),
-                        ),
-                      );
-                    },
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(children: [
+                              CircleAvatar(
+                                backgroundImage: NetworkImage(userPic),
+                                radius: 25,
+                              ),
+                              const SizedBox(width: 20),
+                              Text(userName,
+                                  style: const TextStyle(
+                                      // fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                            ]),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],
