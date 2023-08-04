@@ -49,6 +49,7 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
         .collection('conversations')
         .doc(widget.conversationId)
         .snapshots();
+
     //menu
     return CupertinoPageScaffold(
       child: Column(
@@ -61,17 +62,23 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                   child: StreamBuilder(
                     stream: convoStream,
                     builder: (context, snapshot) {
-                      //get convo data
-                      Map<String, dynamic> convoData =
-                          snapshot.data!.data() as Map<String, dynamic>;
+                      if (!snapshot.hasData ||
+                          snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox
+                            .shrink(); // or any other widget to show while waiting for data
+                      } else {
+                        //get convo data
+                        Map<String, dynamic> convoData =
+                            snapshot.data!.data() as Map<String, dynamic>;
 
-                      //display convo picture
-                      return CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage:
-                            NetworkImage(convoData['convoPicture']),
-                      );
+                        //display convo picture
+                        return CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage:
+                              NetworkImage(convoData['convoPicture']),
+                        );
+                      }
                     },
                   ),
                   onPressed: () {
@@ -121,17 +128,23 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                   child: StreamBuilder(
                     stream: convoStream,
                     builder: (context, snapshot) {
-                      //get convo data
-                      Map<String, dynamic> convoData =
-                          snapshot.data!.data() as Map<String, dynamic>;
+                      if (!snapshot.hasData ||
+                          snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox
+                            .shrink(); // or any other widget to show while waiting for data
+                      } else {
+                        //get convo data
+                        Map<String, dynamic> convoData =
+                            snapshot.data!.data() as Map<String, dynamic>;
 
-                      //display convo name
-                      return Text(
-                        "${convoData['name']}",
-                        style: const TextStyle(
-                          fontSize: 18,
-                        ),
-                      );
+                        //display convo name
+                        return Text(
+                          "${convoData['name']}",
+                          style: const TextStyle(
+                            fontSize: 18,
+                          ),
+                        );
+                      }
                     },
                   ),
                   onPressed: () {
@@ -181,10 +194,14 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                                           ],
                                         ),
                                         // Text field to change convo name
-                                        CupertinoTextFormFieldRow(
+                                        CupertinoTextField(
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
                                           decoration: BoxDecoration(
-                                            color: CupertinoColors
-                                                .extraLightBackgroundGray,
+                                            border: Border.all(
+                                              color: Colors.grey,
+                                              width: 2,
+                                            ),
                                             borderRadius:
                                                 BorderRadius.circular(6),
                                           ),

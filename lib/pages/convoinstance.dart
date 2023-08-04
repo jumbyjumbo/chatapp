@@ -74,10 +74,11 @@ class MessagesState extends State<ConvoInstance> {
                 .doc(widget.conversationId)
                 .snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.active) {
-                return Text(snapshot.data?['name']);
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  !snapshot.hasData) {
+                return const SizedBox.shrink();
               } else {
-                return const Text('');
+                return Text(snapshot.data?['name']);
               }
             },
           ),
@@ -114,13 +115,17 @@ class MessagesState extends State<ConvoInstance> {
                 .doc(widget.conversationId)
                 .snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.active) {
-                return CircleAvatar(
-                    backgroundColor: Colors.transparent,
-                    backgroundImage:
-                        NetworkImage(snapshot.data?['convoPicture']));
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  !snapshot.hasData) {
+                return const SizedBox.shrink();
               } else {
-                return const SizedBox();
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      backgroundImage:
+                          NetworkImage(snapshot.data?['convoPicture'])),
+                );
               }
             },
           ),
