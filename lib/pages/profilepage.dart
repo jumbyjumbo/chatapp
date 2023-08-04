@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'login.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
@@ -38,12 +41,37 @@ class ProfilePageState extends State<ProfilePage> {
               snapshot.data!.data() as Map<String, dynamic>;
           return CupertinoPageScaffold(
               navigationBar: CupertinoNavigationBar(
-                middle: CircleAvatar(
-                  backgroundImage:
-                      NetworkImage('${userData['profilepicture']}'),
-                ),
-                trailing: Text('${userData['name']}'),
-              ),
+                  //display user name
+                  middle: FittedBox(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundImage:
+                              NetworkImage('${userData['profilepicture']}'),
+                        ),
+                        const SizedBox(width: 16),
+                        Text('${userData['name']}'),
+                      ],
+                    ),
+                  ),
+
+                  //logout button if user profile is the current user's profile
+                  trailing:
+                      widget.userId == FirebaseAuth.instance.currentUser!.uid
+                          ? CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(
+                                CupertinoIcons.square_arrow_right,
+                              ),
+                              onPressed: () {
+                                //logout
+                                FirebaseAuth.instance.signOut();
+                                //pop to login page
+                                Navigator.of(context)
+                                    .popUntil((route) => route.isFirst == true);
+                              },
+                            )
+                          : const SizedBox.shrink()),
               child: const Center(child: Text('user profile')));
         }
       },

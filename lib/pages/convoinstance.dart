@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/pages/profilepage.dart';
@@ -259,6 +260,7 @@ class MessagesState extends State<ConvoInstance> {
     );
   }
 
+  //build the chatbox where the user writes and sends messages and pictures
   Widget buildMessageSender() {
     //listen to the text field and update the send button accordingly
     msgController.addListener(() {
@@ -269,40 +271,49 @@ class MessagesState extends State<ConvoInstance> {
       padding: const EdgeInsets.all(8),
       child: BlurEffectView(
         blurAmount: 10,
-        child: CupertinoTextField(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: const BoxDecoration(
-            border: null,
+        child: RawKeyboardListener(
+          focusNode: FocusNode(),
+          onKey: (RawKeyEvent event) {
+            if (event.isShiftPressed &&
+                event.logicalKey == LogicalKeyboardKey.enter) {
+              sendTextMessage();
+            }
+          },
+          child: CupertinoTextField(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: const BoxDecoration(
+              border: null,
+            ),
+            controller: msgController,
+            placeholder: "Message",
+            placeholderStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: CupertinoColors.placeholderText),
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            maxLines: 10,
+            minLines: 1,
+            maxLength: 1000,
+            suffix: ValueListenableBuilder<bool>(
+                valueListenable: textFieldIsEmpty,
+                builder: (context, value, child) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: value
+                        ? ImageSelect(
+                            conversationId: widget.conversationId,
+                            user: user,
+                            pathToStore: "imagesSent",
+                          )
+                        : CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: sendTextMessage,
+                            child: const Text('Send',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                  );
+                }),
           ),
-          controller: msgController,
-          placeholder: "Message",
-          placeholderStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: CupertinoColors.placeholderText),
-          keyboardType: TextInputType.multiline,
-          textInputAction: TextInputAction.send,
-          maxLines: 10,
-          minLines: 1,
-          maxLength: 1000,
-          suffix: ValueListenableBuilder<bool>(
-              valueListenable: textFieldIsEmpty,
-              builder: (context, value, child) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: value
-                      ? ImageSelect(
-                          conversationId: widget.conversationId,
-                          user: user,
-                          pathToStore: "imagesSent",
-                        )
-                      : CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: sendTextMessage,
-                          child: const Text('Send',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                );
-              }),
         ),
       ),
     );
@@ -310,7 +321,9 @@ class MessagesState extends State<ConvoInstance> {
 
 //send a msg from the current user
   Future<void> sendTextMessage() async {
-    if (msgController.text.isNotEmpty) {
+    // Trim right whitespace
+    String trimmedMsg = msgController.text.trimRight();
+    if (trimmedMsg.isNotEmpty) {
       final DateTime now = DateTime.now(); // creates a new timestamp
 
       //get the current user's data
@@ -332,7 +345,7 @@ class MessagesState extends State<ConvoInstance> {
             userData['name'], // include the sender's name in the message data
         'senderProfilePicture': userData[
             'profilepicture'], // include the sender's profile picture in the message data
-        'content': msgController.text,
+        'content': trimmedMsg,
         'timestamp': now,
       }).then((value) {
         //update the last message sent in the conversation

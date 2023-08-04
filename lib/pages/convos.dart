@@ -91,7 +91,7 @@ class ConvoListState extends State<ConvoList> {
       //top menu bar
       navigationBar: CupertinoNavigationBar(
         //buttons on the right side of the top menu bar
-        trailing: Row(
+        leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             //new convo button
@@ -125,19 +125,12 @@ class ConvoListState extends State<ConvoList> {
                     builder: (context) => UsersList(currentUserUid: user.uid));
               },
             ),
+          ],
+        ),
 
-            //logout button
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: const Icon(
-                CupertinoIcons.square_arrow_right,
-              ),
-              onPressed: () {
-                //logout
-                FirebaseAuth.instance.signOut();
-              },
-            ),
-
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             //profile button
             GestureDetector(
               onTap: () {
