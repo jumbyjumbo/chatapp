@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
     );
 
     return CupertinoApp(
+      title: "Flow",
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<User?>(
         stream: authService.authStateChanges,
