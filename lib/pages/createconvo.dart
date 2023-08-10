@@ -67,8 +67,8 @@ class FriendsListState extends State<FriendsList> {
           .snapshots(),
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        List<String> friends = List<String>.from(snapshot.data!.get('friends'));
-
+        List<String> friends =
+            List<String>.from(snapshot.data?.get('friends') ?? []);
         return Column(
           children: [
             //title
