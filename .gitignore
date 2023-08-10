@@ -1,6 +1,7 @@
 # Miscellaneous
 .env
 functions
+python_fns
 *.class
 *.log
 *.pyc
@@ -11,6 +12,7 @@ functions
 .history
 .svn/
 migrate_working_dir/
+firebase.json
 
 # IntelliJ related
 *.iml

@@ -54,6 +54,7 @@ class FriendsListState extends State<FriendsList> {
       });
     }
     // Pop the create convo page
+    // ignore: use_build_context_synchronously
     Navigator.pop(context);
   }
 
