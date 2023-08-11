@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'convos.dart';
 
@@ -27,11 +28,20 @@ class UsernameSelectionState extends State<UsernameSelection> {
               constraints: const BoxConstraints(maxWidth: 300),
               child: CupertinoTextField(
                 controller: usernameController,
+
                 decoration: BoxDecoration(
                   color:
                       CupertinoTheme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
+
+                //refuse whitespaces
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                ],
+                //limit username length
+                maxLength: 32,
+
                 placeholder: 'Choose a unique username',
                 padding: const EdgeInsets.all(16),
               ),

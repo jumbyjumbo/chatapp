@@ -21,12 +21,14 @@ class ConvoList extends StatefulWidget {
 }
 
 class ConvoListState extends State<ConvoList> {
-  late final AuthService _authService;
+  String defaultConvoPic =
+      "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png";
+  late final AuthService authService;
 
   @override
   void initState() {
     super.initState();
-    _authService = AuthService(FirebaseAuth.instance);
+    authService = AuthService(FirebaseAuth.instance);
   }
 
   //stream for user profile picture
@@ -47,7 +49,7 @@ class ConvoListState extends State<ConvoList> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: _authService.authStateChanges,
+      stream: authService.authStateChanges,
       builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
@@ -307,6 +309,58 @@ class ConvoListState extends State<ConvoList> {
               : screenWidthUnit * 1.25),
     );
 
+    //get convo info
+
+    //prioritize custom convo pic,
+    //then last sent picture message,
+    // then other user profile pic,
+    // then default convo pic
+    Future<Map<String, String>> getConvoInfo(
+        Map<String, dynamic> convoData, String userId) async {
+      // get convo picture and name and set to default if null
+      String convoPicUrl = convoData['convoPicture'] ?? defaultConvoPic;
+      String name = convoData['name'] ?? 'new group chat';
+
+      // If there is a custom convo picture, return it
+      if (convoPicUrl != defaultConvoPic) {
+        return {'pictureUrl': convoPicUrl, 'name': name};
+      } else {
+        // Try to get the last sent picture message
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('conversations')
+            .doc(conversationId)
+            .collection("messages")
+            .where('type', isEqualTo: 'image')
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get()
+            .catchError((error) {
+          print("An error occurred: $error");
+        });
+        // If there is a picture message, get the last sent picture URL
+        if (querySnapshot.docs.isNotEmpty) {
+          String lastSentPictureUrl =
+              querySnapshot.docs[0]['content'] ?? defaultConvoPic;
+          convoPicUrl = lastSentPictureUrl;
+        } else if (convoData['members'].length == 2) {
+          // If there are only 2 members and no picture message, get the other user's profile picture and name
+          String otherUserId = convoData['members'][0] == userId
+              ? convoData['members'][1]
+              : convoData['members'][0];
+
+          DocumentSnapshot otherUserDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(otherUserId)
+              .get();
+
+          convoPicUrl = otherUserDoc['profilepicture'] ?? defaultConvoPic;
+          name = otherUserDoc['name'] ?? 'Unknown User';
+        }
+
+        return {'pictureUrl': convoPicUrl, 'name': name};
+      }
+    }
+
     //return convo widget
     return Padding(
       padding: EdgeInsets.all(
@@ -314,96 +368,121 @@ class ConvoListState extends State<ConvoList> {
       ),
 
       //convo instance display
-      child: Row(
-        children: [
-          CircleAvatar(
-              radius: screenHeightUnit * 4,
-              backgroundColor: Colors.transparent,
-              backgroundImage: NetworkImage(
-                convoData['convoPicture'],
-              )),
-          SizedBox(
-            width: screenHeightUnit * 2,
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: FutureBuilder<Map<String, String>>(
+        future: getConvoInfo(convoData, userId),
+        builder: (context, snapshot) {
+          //if snapshot is loading or has no data, show nothing
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              !snapshot.hasData) {
+            return const SizedBox.shrink();
+          }
+          //get convo picture and name
+          String convoPicDisplayed =
+              snapshot.data?['pictureUrl'] ?? defaultConvoPic;
+          String convoNameDisplayed =
+              snapshot.data?['name'] ?? 'new group chat';
+
+          //else show convo instance
+          return Row(
             children: [
-              Text(
-                convoData['name'],
-                style: chatTextStyle.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: chatTextStyle.fontSize! * 1.1,
+              //convo picture
+              CircleAvatar(
+                radius: screenHeightUnit * 4,
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(convoPicDisplayed),
+              ),
+
+              //spacing
+              SizedBox(
+                width: screenHeightUnit * 2,
+              ),
+
+              //convo name and last msg
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      convoNameDisplayed,
+                      style: chatTextStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: chatTextStyle.fontSize! * 1.1,
+                      ),
+                    ),
+                    // StreamBuilder to display the last message
+                    StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('conversations')
+                          .doc(conversationId)
+                          .collection("messages")
+                          .doc(convoData['lastMessage'])
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        if (snapshot.connectionState ==
+                                ConnectionState.waiting ||
+                            convoData['lastMessage'] == null ||
+                            !snapshot.hasData) {
+                          //show nothing
+                          return Container(color: Colors.transparent);
+                        }
+
+                        // Get the last message data
+                        Map<String, dynamic> lastMessageData =
+                            snapshot.data!.data() as Map<String, dynamic>;
+                        // Return a text widget with the last message's content, sender and timestamp
+
+                        // Get how long ago the last msg was sent
+                        final int secondsAgo = DateTime.now()
+                            .difference(lastMessageData['timestamp'].toDate())
+                            .inSeconds;
+
+                        return Row(
+                          children: [
+                            FutureBuilder<String>(
+                              future: getUserName(lastMessageData['sender']),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                String content = lastMessageData['content'];
+                                if (content.length > 20) {
+                                  content = '${content.substring(0, 20)}...';
+                                }
+                                // If there are more than 2 members in the conversation,
+                                //or if msg is not sent by the current user,
+                                //prepend the sender's name to the message content.
+
+                                String prefix =
+                                    (convoData['members'].length > 2 &&
+                                            snapshot.hasData &&
+                                            lastMessageData['sender'] != userId)
+                                        ? "${snapshot.data}:"
+                                        : "";
+                                return Text(
+                                  "$prefix$content",
+                                  style: chatTextStyle.copyWith(
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            ),
+
+                            // Display the timestamp in "time ago" format
+                            Text(
+                              "  •  ${secondsAgo < 10 ? "just now" : GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
+                              style: chatTextStyle.copyWith(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-              // StreamBuilder to display the last message
-              StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('conversations')
-                    .doc(conversationId)
-                    .collection("messages")
-                    .doc(convoData['lastMessage'])
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<DocumentSnapshot> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting ||
-                      convoData['lastMessage'] == null ||
-                      !snapshot.hasData) {
-                    //show nothing
-                    return Container(color: Colors.transparent);
-                  }
-
-                  // Get the last message data
-                  Map<String, dynamic> lastMessageData =
-                      snapshot.data!.data() as Map<String, dynamic>;
-                  // Return a text widget with the last message's content, sender and timestamp
-
-                  // Get how long ago the last msg was sent
-                  final int secondsAgo = DateTime.now()
-                      .difference(lastMessageData['timestamp'].toDate())
-                      .inSeconds;
-
-                  return Row(
-                    children: [
-                      FutureBuilder<String>(
-                        future: getUserName(lastMessageData['sender']),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<String> snapshot) {
-                          String content = lastMessageData['content'];
-                          if (content.length > 20) {
-                            content = '${content.substring(0, 20)}...';
-                          }
-                          // If there are more than 2 members in the conversation,
-                          //or if msg is not sent by the current user,
-                          //prepend the sender's name to the message content.
-
-                          String prefix = (convoData['members'].length > 2 &&
-                                  snapshot.hasData &&
-                                  lastMessageData['sender'] != userId)
-                              ? "${snapshot.data}:"
-                              : "";
-                          return Text(
-                            "$prefix$content",
-                            style: chatTextStyle.copyWith(
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
-                      ),
-
-                      // Display the timestamp in "time ago" format
-                      Text(
-                        "  •  ${secondsAgo < 10 ? "just now" : GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
-                        style: chatTextStyle.copyWith(
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

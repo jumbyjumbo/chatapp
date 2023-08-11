@@ -27,8 +27,8 @@ class FriendsListState extends State<FriendsList> {
   // Create a new conversation with the selected users + current user
   Future<void> createConversation(List<String> memberIds) async {
     final DateTime now = DateTime.now(); // creates a new timestamp
-    String defaultName = "Chat";
-    String defaultPic =
+    String defaultConvoName = "new convo";
+    String defaultConvoPic =
         "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png";
 
     // Include the current user in the conversation
@@ -39,9 +39,9 @@ class FriendsListState extends State<FriendsList> {
     //create the conversation
     DocumentReference conversationDoc =
         await FirebaseFirestore.instance.collection('conversations').add({
-      'name': defaultName,
+      'name': defaultConvoName,
       'members': memberIds,
-      'convoPicture': defaultPic,
+      'convoPicture': defaultConvoPic,
       'lastmessagetimestamp': now,
     });
 

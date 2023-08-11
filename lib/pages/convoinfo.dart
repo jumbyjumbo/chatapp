@@ -148,80 +148,63 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                     },
                   ),
                   onPressed: () {
-                    showCupertinoModalPopup(
+                    // Show bottom sheet
+                    showCupertinoModalBottomSheet(
+                      expand: true,
+                      elevation: 10,
                       context: context,
-                      builder: (BuildContext context) => CupertinoActionSheet(
-                        actions: [
-                          CupertinoActionSheetAction(
-                            child: const Text('change convo name'),
-                            onPressed: () {
-                              Navigator.pop(context); // close the action sheet
-                              // Show bottom sheet
-                              showCupertinoModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: <Widget>[
-                                        // Done and cancel buttons
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            CupertinoButton(
-                                              child: const Text('Cancel'),
-                                              onPressed: () {
-                                                Navigator.pop(
-                                                    context); // close the bottom sheet
-                                              },
-                                            ),
-                                            CupertinoButton(
-                                              child: const Text('Done'),
-                                              onPressed: () {
-                                                // Update conversation name in Firestore
-                                                FirebaseFirestore.instance
-                                                    .collection('conversations')
-                                                    .doc(widget.conversationId)
-                                                    .update({
-                                                  'name':
-                                                      convoNameController.text,
-                                                });
-                                                Navigator.pop(
-                                                    context); // close the bottom sheet
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                        // Text field to change convo name
-                                        CupertinoTextField(
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                          decoration: BoxDecoration(
-                                            color: CupertinoTheme.of(context)
-                                                .primaryColor
-                                                .withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          controller: convoNameController,
-                                          placeholder: 'Conversation Name',
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                        cancelButton: CupertinoActionSheetAction(
-                          child: const Text("cancel"),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
+                      builder: (context) {
+                        return Column(
+                          children: <Widget>[
+                            // Done and cancel buttons
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                CupertinoButton(
+                                  child: const Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.pop(
+                                        context); // close the bottom sheet
+                                  },
+                                ),
+                                CupertinoButton(
+                                  child: const Text('Done'),
+                                  onPressed: () {
+                                    // Update conversation name in Firestore
+                                    FirebaseFirestore.instance
+                                        .collection('conversations')
+                                        .doc(widget.conversationId)
+                                        .update({
+                                      'name': convoNameController.text,
+                                    });
+                                    Navigator.pop(
+                                        context); // close the bottom sheet
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            // Text field to change convo name
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 8),
+                              child: CupertinoTextField(
+                                padding: const EdgeInsets.all(16),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                decoration: BoxDecoration(
+                                  color: CupertinoTheme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                controller: convoNameController,
+                                placeholder: 'Conversation Name',
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     );
                   }),
             ],

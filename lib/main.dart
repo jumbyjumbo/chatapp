@@ -53,21 +53,20 @@ class MyApp extends StatelessWidget {
               // User is signed out, show Login screen.
               return const Login();
             } else {
-              // User is signed in, check if they have a username
-
               // Get user document
               final userDoc = FirebaseFirestore.instance
                   .collection('users')
                   .doc(snapshot.data!.uid);
 
+              // Check if user has a username
               return FutureBuilder<DocumentSnapshot>(
                   future: userDoc.get(),
-                  builder: (context, docSnapshot) {
-                    if (docSnapshot.hasData &&
-                        docSnapshot.data != null &&
-                        docSnapshot.data!.exists) {
+                  builder: (context, userInfo) {
+                    if (userInfo.hasData) {
                       final userData =
-                          docSnapshot.data!.data() as Map<String, dynamic>?;
+                          userInfo.data!.data() as Map<String, dynamic>?;
+
+                      //if user has no username, go to username selection page
                       if (userData!['username'] == null) {
                         // Navigate to username selection page
                         return const UsernameSelection();
