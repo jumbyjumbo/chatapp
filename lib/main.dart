@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -5,6 +6,7 @@ import 'backend stuff/firebase_options.dart';
 import 'backend stuff/authservice.dart';
 import 'pages/login.dart';
 import 'pages/convos.dart';
+import 'pages/usernameselection.dart';
 
 void main() async {
   //make sure widgets load before anything else
@@ -22,17 +24,27 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  // Create a navigator key to navigate without context
+
   @override
   Widget build(BuildContext context) {
-    // Instantiate AuthService.
+    // init AuthService.
     final AuthService authService = AuthService(
       FirebaseAuth.instance,
     );
 
     return CupertinoApp(
+      //app title
       title: "Flow",
-      debugShowCheckedModeBanner: false,
+
+      // Set theme.
+      theme: CupertinoThemeData(
+        primaryColor: CupertinoTheme.brightnessOf(context) == Brightness.light
+            ? CupertinoColors.black
+            : CupertinoColors.white,
+      ),
+
+      //stream if user is logged in or not
       home: StreamBuilder<User?>(
         stream: authService.authStateChanges,
         builder: (context, snapshot) {
@@ -41,8 +53,33 @@ class MyApp extends StatelessWidget {
               // User is signed out, show Login screen.
               return const Login();
             } else {
-              // User is signed in, show ConvoList.
-              return const ConvoList();
+              // User is signed in, check if they have a username
+
+              // Get user document
+              final userDoc = FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(snapshot.data!.uid);
+
+              return FutureBuilder<DocumentSnapshot>(
+                  future: userDoc.get(),
+                  builder: (context, docSnapshot) {
+                    if (docSnapshot.hasData &&
+                        docSnapshot.data != null &&
+                        docSnapshot.data!.exists) {
+                      final userData =
+                          docSnapshot.data!.data() as Map<String, dynamic>?;
+                      if (userData!['username'] == null) {
+                        // Navigate to username selection page
+                        return const UsernameSelection();
+                      } else {
+                        // User has a username, show ConvoList
+                        return const ConvoList();
+                      }
+                    } else {
+                      // Show nothing
+                      return const SizedBox.shrink();
+                    }
+                  });
             }
           } else {
             // Show nothing
@@ -50,6 +87,8 @@ class MyApp extends StatelessWidget {
           }
         },
       ),
+      //remove debug banner
+      debugShowCheckedModeBanner: false,
     );
   }
 }

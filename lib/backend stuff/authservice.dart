@@ -4,12 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthService {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   //stream auth changes to other widgets
-  final FirebaseAuth _auth;
-  AuthService(this._auth);
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  final FirebaseAuth auth;
+  AuthService(this.auth);
+  Stream<User?> get authStateChanges => auth.authStateChanges();
 
   // Function to handle Google Sign-In
   Future<void> signInWithGoogle() async {
@@ -17,7 +17,7 @@ class AuthService {
 
     if (kIsWeb) {
       GoogleAuthProvider googleProvider = GoogleAuthProvider();
-      userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
+      userCredential = await firebaseAuth.signInWithPopup(googleProvider);
     } else {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
@@ -28,7 +28,7 @@ class AuthService {
           idToken: googleAuth.idToken,
           accessToken: googleAuth.accessToken,
         );
-        userCredential = await _firebaseAuth.signInWithCredential(credential);
+        userCredential = await firebaseAuth.signInWithCredential(credential);
       }
     }
     if (userCredential != null) {
@@ -73,9 +73,7 @@ class AuthService {
     } else {
       // If the document does exist, update it with the user's data
       await userDoc.update({
-        'name': user.displayName,
         'email': user.email,
-        'profilepicture': user.photoURL,
         'phone': user.phoneNumber,
       });
     }
@@ -102,6 +100,6 @@ class AuthService {
 
   // Function to handle sign out
   Future<void> signOut() async {
-    await _firebaseAuth.signOut();
+    await firebaseAuth.signOut();
   }
 }

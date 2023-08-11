@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:pleasepleasepleaseplease/pages/login.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
 import '../backend stuff/authservice.dart';
 import 'convoinstance.dart';
@@ -58,7 +59,10 @@ class ConvoListState extends State<ConvoList> {
             return buildUserInterface(user, context);
           } else {
             // If the user is not logged in, navigate to the login page.
-            Navigator.of(context).pushReplacementNamed('/login');
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(builder: (context) => const Login()),
+            );
             return const SizedBox
                 .shrink(); // This won't actually render, since we're navigating away.
           }
@@ -99,7 +103,6 @@ class ConvoListState extends State<ConvoList> {
               padding: EdgeInsets.zero,
               child: const Icon(
                 CupertinoIcons.plus_app_fill,
-                color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
                 //show modal bottom sheet: add to convo (friends list)
@@ -116,7 +119,6 @@ class ConvoListState extends State<ConvoList> {
               padding: EdgeInsets.zero,
               child: const Icon(
                 CupertinoIcons.person_add_solid,
-                color: CupertinoColors.activeBlue,
               ),
               onPressed: () {
                 //show modal bottom sheet: add to convo (friends list)
@@ -215,17 +217,11 @@ class ConvoListState extends State<ConvoList> {
                       extentRatio: 1 / 3,
                       motion: const ScrollMotion(),
                       children: <SlidableAction>[
-                        //pin convo to the top of list
-                        // SlidableAction(
-                        //     backgroundColor: CupertinoColors.activeBlue,
-                        //     onPressed: (context) {
-                        //       //pin convo to top of list
-                        //     },
-                        //     icon: CupertinoIcons.pin_fill),
-
                         //get convo info
                         SlidableAction(
-                          backgroundColor: CupertinoColors.activeBlue,
+                          //same as app theme primary color
+                          backgroundColor:
+                              CupertinoTheme.of(context).primaryColor,
                           icon: CupertinoIcons.info_circle_fill,
                           onPressed: (context) {
                             //open convo info page

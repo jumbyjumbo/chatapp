@@ -4,16 +4,7 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Default [FirebaseOptions] for use with your Firebase apps.
-///
-/// Example:
-/// ```dart
-/// import 'firebase_options.dart';
-/// // ...
-/// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
-/// );
-/// ```
+/// Provides the default FirebaseOptions for the current platform.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -66,7 +57,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '858719003309',
     projectId: 'flutterchatapp-4e28e',
     storageBucket: 'flutterchatapp-4e28e.appspot.com',
-    iosClientId: '858719003309-58u3i91f9t4ec28tbbt6nltg816pf97t.apps.googleusercontent.com',
+    iosClientId:
+        '858719003309-58u3i91f9t4ec28tbbt6nltg816pf97t.apps.googleusercontent.com',
     iosBundleId: 'com.example.pleasepleasepleaseplease',
   );
 
@@ -76,7 +68,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '858719003309',
     projectId: 'flutterchatapp-4e28e',
     storageBucket: 'flutterchatapp-4e28e.appspot.com',
-    iosClientId: '858719003309-5pftaqlcrgsb0gqsaasos0ol17rpd40v.apps.googleusercontent.com',
+    iosClientId:
+        '858719003309-5pftaqlcrgsb0gqsaasos0ol17rpd40v.apps.googleusercontent.com',
     iosBundleId: 'com.example.pleasepleasepleaseplease.RunnerTests',
   );
 }

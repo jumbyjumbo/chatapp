@@ -12,7 +12,7 @@ class Login extends StatefulWidget {
 
 // Define the state for the Login widget
 class LoginState extends State<Login> {
-  final AuthService _authService = AuthService(
+  final AuthService authService = AuthService(
     FirebaseAuth.instance,
   );
 
@@ -25,7 +25,7 @@ class LoginState extends State<Login> {
           child: const Text("Login"),
           onTap: () async {
             // Here we call the signInWithGoogle method from our AuthService
-            await _authService.signInWithGoogle();
+            await authService.signInWithGoogle();
           },
         ),
       ),

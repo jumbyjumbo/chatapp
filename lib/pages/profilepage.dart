@@ -64,9 +64,11 @@ class ProfilePageState extends State<ProfilePage> {
                             onPressed: () {
                               //logout
                               FirebaseAuth.instance.signOut();
-                              //pop to login page
+
+                              //pop back to login page
+                              // Pop all routes and go back to the root
                               Navigator.of(context)
-                                  .popUntil((route) => route.isFirst == true);
+                                  .popUntil((route) => route.isFirst);
                             },
                           )
                         : const SizedBox.shrink()),

@@ -198,12 +198,11 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold),
                                           decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Colors.grey,
-                                              width: 2,
-                                            ),
+                                            color: CupertinoTheme.of(context)
+                                                .primaryColor
+                                                .withOpacity(0.1),
                                             borderRadius:
-                                                BorderRadius.circular(6),
+                                                BorderRadius.circular(8),
                                           ),
                                           controller: convoNameController,
                                           placeholder: 'Conversation Name',
