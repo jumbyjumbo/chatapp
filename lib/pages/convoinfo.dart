@@ -12,10 +12,8 @@ import '../backend stuff/uploadimageweb.dart';
 
 class ConvoInfoPage extends StatefulWidget {
   final String conversationId;
-  final Map<String, dynamic> conversationData;
 
-  const ConvoInfoPage(
-      {Key? key, required this.conversationId, required this.conversationData})
+  const ConvoInfoPage({Key? key, required this.conversationId})
       : super(key: key);
 
   @override
@@ -35,11 +33,19 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
     return userDoc.get('profilepicture') as String;
   }
 
+  //get convo name
+  Future<String> getConvoName() async {
+    DocumentSnapshot convoDoc = await firestore
+        .collection('conversations')
+        .doc(widget.conversationId)
+        .get();
+    return convoDoc.get('name') as String;
+  }
+
   @override
   void initState() {
     super.initState();
-    convoNameController =
-        TextEditingController(text: widget.conversationData['name']);
+    convoNameController = TextEditingController(); // No initial text
   }
 
   @override
@@ -49,6 +55,12 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
         .collection('conversations')
         .doc(widget.conversationId)
         .snapshots();
+
+    Stream<List<String>> membersStream = firestore
+        .collection('conversations')
+        .doc(widget.conversationId)
+        .snapshots()
+        .map((doc) => List<String>.from(doc.data()?['members'] ?? []));
 
     //menu
     return CupertinoPageScaffold(
@@ -86,24 +98,9 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                       context: context,
                       builder: (BuildContext context) => CupertinoActionSheet(
                         actions: [
-                          //set convo pic to default/remove custom convo pic
-                          CupertinoActionSheetAction(
-                            child: const Text('remove convo photo'),
-                            onPressed: () {
-                              // Update conversation picture in Firestore
-                              FirebaseFirestore.instance
-                                  .collection('conversations')
-                                  .doc(widget.conversationId)
-                                  .update({
-                                'convoPicture':
-                                    "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png",
-                              });
-                              Navigator.pop(context); // close the action sheet
-                            },
-                          ),
                           //set convo pic to custom image/replace current convo pic
                           CupertinoActionSheetAction(
-                            child: const Text('change convo photo'),
+                            child: const Text('change convo picture'),
                             onPressed: () {
                               Navigator.pop(context); // close the action sheet
                               //picture selection TODO
@@ -111,6 +108,21 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                                       conversationId: widget.conversationId,
                                       pathToStore: "convoProfilePics")
                                   .selectImage();
+                            },
+                          ),
+                          //set convo pic to default/remove custom convo pic
+                          CupertinoActionSheetAction(
+                            child: const Text('remove convo picture'),
+                            onPressed: () {
+                              // Update conversation picture in Firestore
+                              FirebaseFirestore.instance
+                                  .collection('conversations')
+                                  .doc(widget.conversationId)
+                                  .update({
+                                'convoPicture':
+                                    "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg",
+                              });
+                              Navigator.pop(context); // close the action sheet
                             },
                           ),
                         ],
@@ -130,8 +142,7 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                     builder: (context, snapshot) {
                       if (!snapshot.hasData ||
                           snapshot.connectionState == ConnectionState.waiting) {
-                        return const SizedBox
-                            .shrink(); // or any other widget to show while waiting for data
+                        return const SizedBox.shrink();
                       } else {
                         //get convo data
                         Map<String, dynamic> convoData =
@@ -147,11 +158,12 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                       }
                     },
                   ),
-                  onPressed: () {
+                  onPressed: () async {
+                    String convoName = await getConvoName(); // Fetch the name
                     // Show bottom sheet
+                    // ignore: use_build_context_synchronously
                     showCupertinoModalBottomSheet(
                       expand: true,
-                      elevation: 10,
                       context: context,
                       builder: (context) {
                         return Column(
@@ -160,6 +172,7 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                //cancel
                                 CupertinoButton(
                                   child: const Text('Cancel'),
                                   onPressed: () {
@@ -167,6 +180,8 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                                         context); // close the bottom sheet
                                   },
                                 ),
+
+                                //done
                                 CupertinoButton(
                                   child: const Text('Done'),
                                   onPressed: () {
@@ -199,7 +214,7 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 controller: convoNameController,
-                                placeholder: 'Conversation Name',
+                                placeholder: convoName,
                               ),
                             ),
                           ],
@@ -229,47 +244,55 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
               ),
 
               //list of members
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: widget.conversationData['members'].length,
-                itemBuilder: (BuildContext context, int index) {
-                  return FutureBuilder(
-                    future: getProfilePictureUrl(
-                        widget.conversationData['members'][index]),
-                    builder:
-                        (BuildContext context, AsyncSnapshot<String> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting ||
-                          !snapshot.hasData) {
-                        return const SizedBox();
-                      } else {
-                        return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
-                            child: FittedBox(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ProfilePage(
-                                          userId:
-                                              widget.conversationData['members']
-                                                  [index]),
+              child: StreamBuilder(
+                  stream: membersStream,
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<String>> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting ||
+                        !snapshot.hasData) {
+                      return const SizedBox();
+                    }
+                    //list of members
+                    return ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return FutureBuilder(
+                          future: getProfilePictureUrl(snapshot.data![index]),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<String> snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.waiting ||
+                                !snapshot.hasData) {
+                              return const SizedBox();
+                            } else {
+                              return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 4),
+                                  child: FittedBox(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProfilePage(
+                                                userId: snapshot.data![index]),
+                                          ),
+                                        );
+                                      },
+                                      child: CircleAvatar(
+                                        backgroundColor: Colors.transparent,
+                                        foregroundImage: NetworkImage(
+                                            snapshot.data.toString()),
+                                      ),
                                     ),
-                                  );
-                                },
-                                child: CircleAvatar(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundImage:
-                                      NetworkImage(snapshot.data.toString()),
-                                ),
-                              ),
-                            ));
-                      }
-                    },
-                  );
-                },
-              ),
+                                  ));
+                            }
+                          },
+                        );
+                      },
+                    );
+                  }),
             ),
           ),
         ],

@@ -17,12 +17,10 @@ import '/backend stuff/uploadimageweb.dart';
 // 1. Declaration of the ConvoInstance widget and its properties.
 class ConvoInstance extends StatefulWidget {
   final String conversationId;
-  final Map<String, dynamic> conversationData;
 
   const ConvoInstance({
     Key? key,
     required this.conversationId,
-    required this.conversationData,
   }) : super(key: key);
 
   @override
@@ -77,9 +75,39 @@ class MessagesState extends State<ConvoInstance> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData) {
-                return const SizedBox.shrink();
+                return const SizedBox();
               } else {
-                return Text(snapshot.data?['name']);
+                //get the convo data
+                Map<String, dynamic> convoData =
+                    snapshot.data!.data() as Map<String, dynamic>;
+
+                if (convoData['name'] == 'new convo' &&
+                    convoData['members'].length == 2) {
+                  // Find the userId of the other user
+                  String otherUserId = convoData['members']
+                      .firstWhere((member) => member != user.uid);
+
+                  // Fetch and return the name of the other user
+                  return FutureBuilder(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(otherUserId)
+                        .get(),
+                    builder:
+                        (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting ||
+                          !snapshot.hasData) {
+                        return const SizedBox();
+                      } else {
+                        return FittedBox(
+                            child: Text(snapshot.data!['name'].toString()));
+                      }
+                    },
+                  );
+                } else {
+                  // Display the conversation name as usual
+                  return FittedBox(child: Text(convoData['name']));
+                }
               }
             },
           ),
@@ -90,7 +118,6 @@ class MessagesState extends State<ConvoInstance> {
               builder: (context) {
                 return ConvoInfoPage(
                   conversationId: widget.conversationId,
-                  conversationData: widget.conversationData,
                 );
               },
             );
@@ -105,7 +132,6 @@ class MessagesState extends State<ConvoInstance> {
               builder: (context) {
                 return ConvoInfoPage(
                   conversationId: widget.conversationId,
-                  conversationData: widget.conversationData,
                 );
               },
             );

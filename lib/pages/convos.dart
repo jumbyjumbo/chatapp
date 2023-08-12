@@ -22,7 +22,7 @@ class ConvoList extends StatefulWidget {
 
 class ConvoListState extends State<ConvoList> {
   String defaultConvoPic =
-      "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png";
+      "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
   late final AuthService authService;
 
   @override
@@ -196,7 +196,6 @@ class ConvoListState extends State<ConvoList> {
                     MaterialPageRoute(
                       builder: (context) => ConvoInstance(
                         conversationId: conversationDoc.id,
-                        conversationData: conversationData,
                       ),
                     ),
                   );
@@ -231,9 +230,8 @@ class ConvoListState extends State<ConvoList> {
                               context: context,
                               builder: (context) {
                                 return ConvoInfoPage(
-                                    conversationId: conversations[index].id,
-                                    conversationData: conversations[index]
-                                        .data() as Map<String, dynamic>);
+                                  conversationId: conversations[index].id,
+                                );
                               },
                             );
                           },
@@ -315,17 +313,17 @@ class ConvoListState extends State<ConvoList> {
     //then last sent picture message,
     // then other user profile pic,
     // then default convo pic
-    Future<Map<String, String>> getConvoInfo(
+    Future<Map<String, String>> setConvoPicAndName(
         Map<String, dynamic> convoData, String userId) async {
       // get convo picture and name and set to default if null
       String convoPicUrl = convoData['convoPicture'] ?? defaultConvoPic;
-      String name = convoData['name'] ?? 'new group chat';
+      String convoName = convoData['name'] ?? 'new group chat';
 
       // If there is a custom convo picture, return it
       if (convoPicUrl != defaultConvoPic) {
-        return {'pictureUrl': convoPicUrl, 'name': name};
+        return {'convoPicUrl': convoPicUrl, 'convoName': convoName};
       } else {
-        // Try to get the last sent picture message
+        // get the last sent picture message if any
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('conversations')
             .doc(conversationId)
@@ -333,10 +331,8 @@ class ConvoListState extends State<ConvoList> {
             .where('type', isEqualTo: 'image')
             .orderBy('timestamp', descending: true)
             .limit(1)
-            .get()
-            .catchError((error) {
-          print("An error occurred: $error");
-        });
+            .get();
+
         // If there is a picture message, get the last sent picture URL
         if (querySnapshot.docs.isNotEmpty) {
           String lastSentPictureUrl =
@@ -354,10 +350,10 @@ class ConvoListState extends State<ConvoList> {
               .get();
 
           convoPicUrl = otherUserDoc['profilepicture'] ?? defaultConvoPic;
-          name = otherUserDoc['name'] ?? 'Unknown User';
+          convoName = otherUserDoc['name'] ?? 'Unknown User';
         }
 
-        return {'pictureUrl': convoPicUrl, 'name': name};
+        return {'convoPicUrl': convoPicUrl, 'convoName': convoName};
       }
     }
 
@@ -369,20 +365,20 @@ class ConvoListState extends State<ConvoList> {
 
       //convo instance display
       child: FutureBuilder<Map<String, String>>(
-        future: getConvoInfo(convoData, userId),
+        future: setConvoPicAndName(convoData, userId),
         builder: (context, snapshot) {
           //if snapshot is loading or has no data, show nothing
           if (snapshot.connectionState == ConnectionState.waiting ||
               !snapshot.hasData) {
-            return const SizedBox.shrink();
+            return const SizedBox();
           }
+
           //get convo picture and name
           String convoPicDisplayed =
-              snapshot.data?['pictureUrl'] ?? defaultConvoPic;
-          String convoNameDisplayed =
-              snapshot.data?['name'] ?? 'new group chat';
+              snapshot.data?['convoPicUrl'] ?? defaultConvoPic;
+          String convoNameDisplayed = snapshot.data?['convoName'] ?? 'convo';
 
-          //else show convo instance
+          //show convo instance
           return Row(
             children: [
               //convo picture

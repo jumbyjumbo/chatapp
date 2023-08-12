@@ -93,7 +93,7 @@ class AuthService {
       await chatBotDoc.set({
         'name': "chatbot",
         'profilepicture':
-            "https://raw.githubusercontent.com/jumbyjumbo/images/main/black%20logo.jpg",
+            "https://raw.githubusercontent.com/jumbyjumbo/images/main/icon-192.png",
       });
     }
   }

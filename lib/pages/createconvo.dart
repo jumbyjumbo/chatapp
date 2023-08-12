@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'convoinstance.dart';
+
 //friend class for ease of use
 class Friend {
   final String id;
@@ -25,11 +27,15 @@ class FriendsListState extends State<FriendsList> {
   List<String> selectedFriends = [];
 
   // Create a new conversation with the selected users + current user
-  Future<void> createConversation(List<String> memberIds) async {
+  Future<String> createConversation(List<String> memberIds) async {
     final DateTime now = DateTime.now(); // creates a new timestamp
+
+    //set default convo name
     String defaultConvoName = "new convo";
+
+    //set default convo picture
     String defaultConvoPic =
-        "https://raw.githubusercontent.com/jumbyjumbo/images/main/pp.png";
+        "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
 
     // Include the current user in the conversation
     if (!memberIds.contains(widget.userId)) {
@@ -56,6 +62,9 @@ class FriendsListState extends State<FriendsList> {
     // Pop the create convo page
     // ignore: use_build_context_synchronously
     Navigator.pop(context);
+
+    // Return the conversation ID
+    return conversationDoc.id;
   }
 
   @override
@@ -133,9 +142,19 @@ class FriendsListState extends State<FriendsList> {
                 color: Colors.blue,
                 onPressed: selectedFriends.isEmpty
                     ? null
-                    : () {
-                        createConversation(
-                            selectedFriends); //create the convo with the selected friends
+                    : () async {
+                        //create the convo with the selected friends and store its id
+                        String newConvoId =
+                            await createConversation(selectedFriends);
+                        // ignore: use_build_context_synchronously
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) => ConvoInstance(
+                              conversationId: newConvoId,
+                            ),
+                          ),
+                        );
                       },
                 child: const Center(child: Text('create convo')),
               ),
