@@ -13,7 +13,7 @@ python_fns
 .svn/
 migrate_working_dir/
 firebase.json
-
+CNAME
 # IntelliJ related
 *.iml
 *.ipr
