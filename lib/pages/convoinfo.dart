@@ -55,7 +55,7 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
         .collection('conversations')
         .doc(widget.conversationId)
         .snapshots();
-
+    //stream convo's members' data
     Stream<List<String>> membersStream = firestore
         .collection('conversations')
         .doc(widget.conversationId)
@@ -76,8 +76,7 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                     builder: (context, snapshot) {
                       if (!snapshot.hasData ||
                           snapshot.connectionState == ConnectionState.waiting) {
-                        return const SizedBox
-                            .shrink(); // or any other widget to show while waiting for data
+                        return const SizedBox();
                       } else {
                         //get convo data
                         Map<String, dynamic> convoData =
@@ -257,8 +256,10 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                       scrollDirection: Axis.horizontal,
                       itemCount: snapshot.data!.length,
                       itemBuilder: (BuildContext context, int index) {
+                        String userId = snapshot.data![
+                            index]; // Get the user ID from the members list
                         return FutureBuilder(
-                          future: getProfilePictureUrl(snapshot.data![index]),
+                          future: getProfilePictureUrl(userId),
                           builder: (BuildContext context,
                               AsyncSnapshot<String> snapshot) {
                             if (snapshot.connectionState ==
@@ -275,8 +276,8 @@ class ConvoInfoPageState extends State<ConvoInfoPage> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => ProfilePage(
-                                                userId: snapshot.data![index]),
+                                            builder: (context) =>
+                                                ProfilePage(userId: userId),
                                           ),
                                         );
                                       },

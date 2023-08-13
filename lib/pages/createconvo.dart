@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'convoinstance.dart';
+import 'messagingpage.dart';
 
 //friend class for ease of use
 class Friend {
@@ -78,68 +77,81 @@ class FriendsListState extends State<FriendsList> {
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         List<String> friends =
             List<String>.from(snapshot.data?.get('friends') ?? []);
-        return Column(
-          children: [
-            //title
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('new convo', style: TextStyle(fontSize: 25)),
-            ),
+        return Stack(children: [
+          //list of friends
+          Column(
+            children: [
+              //title
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('new convo', style: TextStyle(fontSize: 25)),
+              ),
 
-            //search bar TODO
+              //search bar TODO
 
-            //list of friends
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  border:
-                      Border(top: BorderSide(width: 0.5, color: Colors.grey)),
-                ),
-                child: ListView.builder(
-                  itemCount: friends.length,
-                  itemBuilder: (context, index) {
-                    return FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(friends[index])
-                          .get(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<DocumentSnapshot> snapshot) {
-                        if (!snapshot.hasData) {
-                          return const SizedBox.shrink();
-                        }
+              //list of friends
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border:
+                        Border(top: BorderSide(width: 0.5, color: Colors.grey)),
+                  ),
+                  child: ListView.builder(
+                    itemCount: friends.length,
+                    itemBuilder: (context, index) {
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(friends[index])
+                            .get(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
+                          if (!snapshot.hasData) {
+                            return const SizedBox.shrink();
+                          }
 
-                        final friend = Friend(
-                          id: friends[index],
-                          name: snapshot.data!.get('name'),
-                          profilePicture: snapshot.data!.get('profilepicture'),
-                        );
+                          final friend = Friend(
+                            id: friends[index],
+                            name: snapshot.data!.get('name'),
+                            profilePicture:
+                                snapshot.data!.get('profilepicture'),
+                          );
 
-                        return FriendInstanceWidget(
-                          friend: friend,
-                          initiallySelected:
-                              selectedFriends.contains(friend.id),
-                          onSelectedChanged: (isSelected) {
-                            setState(() {
-                              if (isSelected) {
-                                selectedFriends.add(friend.id);
-                              } else {
-                                selectedFriends.remove(friend.id);
-                              }
-                            });
-                          },
-                        );
-                      },
-                    );
-                  },
+                          return FriendInstanceWidget(
+                            friend: friend,
+                            initiallySelected:
+                                selectedFriends.contains(friend.id),
+                            onSelectedChanged: (isSelected) {
+                              setState(() {
+                                if (isSelected) {
+                                  selectedFriends.add(friend.id);
+                                } else {
+                                  selectedFriends.remove(friend.id);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-            //create convo button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ],
+          ),
+
+          //button
+          //create convo button
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               child: CupertinoButton(
-                color: Colors.blue,
+                disabledColor:
+                    CupertinoTheme.of(context).primaryColor.withOpacity(0.6),
+                color: CupertinoTheme.of(context).primaryColor,
                 onPressed: selectedFriends.isEmpty
                     ? null
                     : () async {
@@ -150,7 +162,7 @@ class FriendsListState extends State<FriendsList> {
                         Navigator.push(
                           context,
                           CupertinoPageRoute(
-                            builder: (context) => ConvoInstance(
+                            builder: (context) => Messagingpage(
                               conversationId: newConvoId,
                             ),
                           ),
@@ -159,8 +171,8 @@ class FriendsListState extends State<FriendsList> {
                 child: const Center(child: Text('create convo')),
               ),
             ),
-          ],
-        );
+          ),
+        ]);
       },
     );
   }

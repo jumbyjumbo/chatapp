@@ -14,11 +14,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import '/backend stuff/uploadimageweb.dart';
 
-// 1. Declaration of the ConvoInstance widget and its properties.
-class ConvoInstance extends StatefulWidget {
+class Messagingpage extends StatefulWidget {
   final String conversationId;
 
-  const ConvoInstance({
+  const Messagingpage({
     Key? key,
     required this.conversationId,
   }) : super(key: key);
@@ -27,7 +26,7 @@ class ConvoInstance extends StatefulWidget {
   MessagesState createState() => MessagesState();
 }
 
-class MessagesState extends State<ConvoInstance> {
+class MessagesState extends State<Messagingpage> {
   //signed in user
   late User user;
 
@@ -35,12 +34,43 @@ class MessagesState extends State<ConvoInstance> {
   final TextEditingController msgController = TextEditingController();
   ValueNotifier<bool> textFieldIsEmpty = ValueNotifier(true);
 
+  //check if user has read the convo, add them if not
+  Future<void> markUserHasRead() async {
+    // Get the conversation document
+    DocumentSnapshot convoDoc = await FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(widget.conversationId)
+        .get();
+
+    List<String> hasRead = List<String>.from(convoDoc['hasread'] ?? []);
+
+    // If the user's ID is not in "hasread", add it
+    if (!hasRead.contains(user.uid)) {
+      FirebaseFirestore.instance
+          .collection('conversations')
+          .doc(widget.conversationId)
+          .update({
+        'hasread': FieldValue.arrayUnion([user.uid]),
+      });
+    }
+  }
+
   //on init, get the current user
   @override
   void initState() {
     super.initState();
-    //get the current user
     user = FirebaseAuth.instance.currentUser!;
+
+    // Add user to "viewing" when entering the page
+    FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(widget.conversationId)
+        .update({
+      'viewing': FieldValue.arrayUnion([user.uid]),
+    });
+
+    //add user to has read list when entering the page
+    markUserHasRead();
   }
 
   //free up memory
@@ -53,6 +83,14 @@ class MessagesState extends State<ConvoInstance> {
 
     //dispose of the text field listener
     textFieldIsEmpty.dispose();
+
+    // Remove user from "viewing" when leaving the page
+    FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(widget.conversationId)
+        .update({
+      'viewing': FieldValue.arrayRemove([user.uid]),
+    });
   }
 
   // 2. UI
@@ -171,7 +209,7 @@ class MessagesState extends State<ConvoInstance> {
   //build the list of messages
   Widget buildMessageList() {
     return StreamBuilder<QuerySnapshot>(
-      //stream ConvoInstance of conversation from firestore
+      //stream of messages
       stream: FirebaseFirestore.instance
           .collection('conversations')
           .doc(widget.conversationId)
@@ -359,6 +397,21 @@ class MessagesState extends State<ConvoInstance> {
           .get();
       Map<String, dynamic> userData = userDoc.data()! as Map<String, dynamic>;
 
+      // Get the conversation document
+      DocumentSnapshot convoDoc = await FirebaseFirestore.instance
+          .collection('conversations')
+          .doc(widget.conversationId)
+          .get();
+      Map<String, dynamic> convoData = convoDoc.data()! as Map<String, dynamic>;
+
+      // Get the list of users viewing the conversation
+      List<String> viewing = List<String>.from(convoData['viewing'] ?? []);
+
+      // Make sure the sender is included in the "hasread" list
+      if (!viewing.contains(user.uid)) {
+        viewing.add(user.uid);
+      }
+
       //add the message to the conversation
       FirebaseFirestore.instance
           .collection('conversations')
@@ -379,8 +432,11 @@ class MessagesState extends State<ConvoInstance> {
             .collection('conversations')
             .doc(widget.conversationId)
             .update({
+          //store some info about the last message for ease of access
           'lastMessage': value.id,
-          'lastmessagetimestamp': now, // updates the lastmessagetimestamp field
+          'lastmessagetimestamp': now,
+          //the current user has read the message but remove everyone else
+          'hasread': viewing,
         });
       });
 
@@ -434,12 +490,29 @@ class ImageSelect extends StatelessWidget {
   Future<void> createImageMsg(String imageUrl) async {
     final DateTime now = DateTime.now();
 
+    //get the current user's data
     DocumentSnapshot userDoc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
     Map<String, dynamic> userData = userDoc.data()! as Map<String, dynamic>;
 
+// Get the conversation document
+    DocumentSnapshot convoDoc = await FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(conversationId)
+        .get();
+    Map<String, dynamic> convoData = convoDoc.data()! as Map<String, dynamic>;
+
+    // Get the list of users viewing the conversation
+    List<String> viewing = List<String>.from(convoData['viewing'] ?? []);
+
+    // Make sure the sender is included in the "hasread" list
+    if (!viewing.contains(user.uid)) {
+      viewing.add(user.uid);
+    }
+
+    //add the message to the conversation
     FirebaseFirestore.instance
         .collection('conversations')
         .doc(conversationId)
@@ -458,6 +531,8 @@ class ImageSelect extends StatelessWidget {
           .update({
         'lastMessage': value.id,
         'lastmessagetimestamp': now,
+        //the current user has read the message but remove everyone else
+        'hasread': viewing,
       });
     });
   }
