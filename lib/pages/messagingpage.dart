@@ -42,7 +42,11 @@ class MessagesState extends State<Messagingpage> {
         .doc(widget.conversationId)
         .get();
 
-    List<String> hasRead = List<String>.from(convoDoc['hasread'] ?? []);
+    Map<String, dynamic>? convoData =
+        convoDoc.data() as Map<String, dynamic>?; // Cast to the correct type
+
+// Now access the 'hasread' field using the map
+    List<String> hasRead = List<String>.from(convoData?['hasread'] ?? []);
 
     // If the user's ID is not in "hasread", add it
     if (!hasRead.contains(user.uid)) {
@@ -433,7 +437,7 @@ class MessagesState extends State<Messagingpage> {
             .doc(widget.conversationId)
             .update({
           //store some info about the last message for ease of access
-          'lastMessage': value.id,
+          'lastmessage': value.id,
           'lastmessagetimestamp': now,
           //the current user has read the message but remove everyone else
           'hasread': viewing,
@@ -531,7 +535,6 @@ class ImageSelect extends StatelessWidget {
           .update({
         'lastMessage': value.id,
         'lastmessagetimestamp': now,
-        //the current user has read the message but remove everyone else
         'hasread': viewing,
       });
     });
