@@ -70,13 +70,13 @@ class ProfilePageState extends State<ProfilePage> {
                             child: const Icon(
                               CupertinoIcons.square_arrow_right,
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               // Create an instance of AuthService
                               AuthService authService =
                                   AuthService(FirebaseAuth.instance);
 
                               //use auth service signout fn
-                              authService.signOutUser();
+                              await authService.signOutUser();
 
                               //pop back to login page
                               // Pop all routes and go back to the root
