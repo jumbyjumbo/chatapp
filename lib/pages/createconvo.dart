@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:pleasepleasepleaseplease/ui%20stuff/uifx.dart';
 import 'messagingpage.dart';
 
 //friend class for ease of use
@@ -22,8 +24,14 @@ class FriendsList extends StatefulWidget {
 }
 
 class FriendsListState extends State<FriendsList> {
+  final GlobalKey formKey = GlobalKey();
   //list of friends to be added to the new convo
   List<String> selectedFriends = [];
+
+  bool isSendingMsg = false;
+
+  //controller for the initial message text field
+  final TextEditingController initialMsgController = TextEditingController();
 
   // Create a new conversation with the selected users + current user
   Future<String> createConversation(List<String> memberIds) async {
@@ -64,6 +72,67 @@ class FriendsListState extends State<FriendsList> {
 
     // Return the conversation ID
     return conversationDoc.id;
+  }
+
+  Future<void> sendInitialMessage(String conversationId, String content) async {
+    final DateTime now = DateTime.now();
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .get();
+    Map<String, dynamic> userData = userDoc.data()! as Map<String, dynamic>;
+
+    FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .add({
+      'type': 'text',
+      'sender': widget.userId,
+      'senderName': userData['name'],
+      'senderProfilePicture': userData['profilepicture'],
+      'content': content,
+      'timestamp': now,
+    }).then((value) {
+      FirebaseFirestore.instance
+          .collection('conversations')
+          .doc(conversationId)
+          .update({
+        'lastmessage': value.id,
+        'lastmessagetimestamp': now,
+      });
+    });
+  }
+
+  void sendMessage() async {
+    if (isSendingMsg) return; // Prevent sending if already sending
+
+    setState(() {
+      isSendingMsg = true; // Mark as sending
+    });
+
+    String newConvoId = await createConversation(selectedFriends);
+    await sendInitialMessage(newConvoId, initialMsgController.text);
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => Messagingpage(
+          conversationId: newConvoId,
+        ),
+      ),
+    );
+
+    setState(() {
+      isSendingMsg = false; // Mark as done sending
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initialMsgController.addListener(() {
+      setState(() {}); // Forces rebuild when the text changes
+    });
   }
 
   @override
@@ -140,35 +209,59 @@ class FriendsListState extends State<FriendsList> {
             ],
           ),
 
-          //button
           //create convo button
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              child: CupertinoButton(
-                disabledColor:
-                    CupertinoTheme.of(context).primaryColor.withOpacity(0.6),
-                color: CupertinoTheme.of(context).primaryColor,
-                onPressed: selectedFriends.isEmpty
-                    ? null
-                    : () async {
-                        //create the convo with the selected friends and store its id
-                        String newConvoId =
-                            await createConversation(selectedFriends);
-                        // ignore: use_build_context_synchronously
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => Messagingpage(
-                              conversationId: newConvoId,
-                            ),
-                          ),
-                        );
-                      },
-                child: const Center(child: Text('create convo')),
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+              child: BlurEffectView(
+                child: RawKeyboardListener(
+                  focusNode: FocusNode(),
+                  //if press shift+enter, send message
+                  onKey: (RawKeyEvent event) {
+                    if (event.isShiftPressed &&
+                        event.logicalKey == LogicalKeyboardKey.enter &&
+                        initialMsgController.text.isNotEmpty) {
+                      //trim the skip line added by the enter key
+                      initialMsgController.text =
+                          initialMsgController.text.trim();
+                      sendMessage();
+                    }
+                  },
+                  child: CupertinoTextField(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: const BoxDecoration(
+                      border: null,
+                    ),
+                    controller: initialMsgController,
+                    placeholder: "message",
+                    placeholderStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.placeholderText),
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    maxLength: 1000,
+                    maxLines: 10,
+                    minLines: 1,
+                    suffix: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: CupertinoButton(
+                        disabledColor: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        onPressed: initialMsgController.text.isEmpty
+                            ? null
+                            : () {
+                                sendMessage();
+                              },
+                        child: const Text('Send',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

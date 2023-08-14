@@ -344,6 +344,8 @@ class MessagesState extends State<Messagingpage> {
           onKey: (RawKeyEvent event) {
             if (event.isShiftPressed &&
                 event.logicalKey == LogicalKeyboardKey.enter) {
+              //trim the skip line added by the enter key
+              msgController.text = msgController.text.trim();
               sendTextMessage();
             }
           },

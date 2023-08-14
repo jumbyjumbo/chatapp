@@ -2,14 +2,38 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:firebase_database/firebase_database.dart';
+
+class OnlineStatusService {
+  final DatabaseReference isOnlineRef;
+
+  OnlineStatusService(String userId)
+      : isOnlineRef =
+            FirebaseDatabase.instance.ref().child('online').child(userId);
+
+  Stream<bool> get onlineStatus {
+    return isOnlineRef.onValue
+        .map((event) => event.snapshot.value as bool? ?? false);
+  }
+}
 
 class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final DatabaseReference onlineRef =
+      FirebaseDatabase.instance.ref().child('online');
 
   //stream auth changes to other widgets
   final FirebaseAuth auth;
   AuthService(this.auth);
   Stream<User?> get authStateChanges => auth.authStateChanges();
+
+  //mark the user as online
+  Future<void> markUserOnline(String userId) async {
+    onlineRef.child(userId).set(true);
+
+    // Remove user from online list when they're no longer online
+    onlineRef.child(userId).onDisconnect().remove();
+  }
 
   // Function to handle Google Sign-In
   Future<void> signInWithGoogle() async {
@@ -37,6 +61,8 @@ class AuthService {
       if (user != null) {
         // store user in Firestore
         await storeUserInFirestore(user);
+        // mark user as online
+        await markUserOnline(user.uid);
       }
     }
   }
@@ -100,6 +126,11 @@ class AuthService {
 
   // Function to handle sign out
   Future<void> signOut() async {
+    final currentUser = firebaseAuth.currentUser;
+    if (currentUser != null) {
+      // Mark the user as offline
+      await onlineRef.child(currentUser.uid).remove();
+    }
     await firebaseAuth.signOut();
   }
 }

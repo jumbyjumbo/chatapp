@@ -3,15 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 
-const String defaultConvoPic =
-    "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
-
-Future<String> getUserName(String uid) async {
-  final userDocument =
-      await FirebaseFirestore.instance.collection('users').doc(uid).get();
-  return userDocument.data()?['name'] ?? '';
-}
-
 class ConvoInstance extends StatefulWidget {
   final Map<String, dynamic> convoData;
   final String conversationId;
@@ -72,6 +63,15 @@ class ConvoInstanceState extends State<ConvoInstance> {
 
       return {'convoPicUrl': convoPicUrl, 'convoName': convoName};
     }
+  }
+
+  String defaultConvoPic =
+      "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
+
+  Future<String> getUserName(String uid) async {
+    final userDocument =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    return userDocument.data()?['name'] ?? '';
   }
 
   @override
@@ -183,9 +183,12 @@ class ConvoInstanceState extends State<ConvoInstance> {
                   children: [
                     Text(
                       convoNameDisplayed,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
+                        color: userHasRead
+                            ? Colors.grey
+                            : CupertinoTheme.of(context).primaryColor,
                       ),
                     ),
                     const SizedBox(
@@ -224,10 +227,6 @@ class ConvoInstanceState extends State<ConvoInstance> {
                               .difference(lastMessageData['timestamp'].toDate())
                               .inSeconds;
 
-                          // Get the last message sender's name
-                          Future<String> senderName =
-                              getUserName(lastMessageData['sender']);
-
                           //define the content of the message to display
                           String content;
                           if (lastMessageData['type'] == 'image') {
@@ -239,44 +238,60 @@ class ConvoInstanceState extends State<ConvoInstance> {
                             }
                           }
 
-                          //message sender displayed if group chat
-                          String prefix = (widget.convoData['members'].length >
-                                      2 &&
-                                  lastMessageData['sender'] != widget.userId)
-                              ? "$senderName: "
-                              : "";
+                          return FutureBuilder<String>(
+                            future: getUserName(lastMessageData['sender']),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.waiting ||
+                                  !snapshot.hasData) {
+                                return const Text(""); // or a loading indicator
+                              }
 
-                          // Display the last message
-                          return RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: userHasRead
-                                    ? FontWeight.normal
-                                    : FontWeight.bold,
-                                color: userHasRead
-                                    ? Colors.grey
-                                    : CupertinoTheme.of(context).primaryColor,
-                              ),
-                              children: [
-                                //message sender
-                                TextSpan(
-                                  text: prefix,
-                                ),
-                                TextSpan(
-                                  //message content
-                                  text: content,
-                                ),
-                                //message timestamp
-                                TextSpan(
-                                  text:
-                                      "  •  ${secondsAgo < 10 ? "just now" : GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
+                              // Get the last message sender's name
+                              String senderName = snapshot.data ?? '';
+
+                              //message sender displayed if group chat
+                              String prefix =
+                                  (widget.convoData['members'].length > 2 &&
+                                          lastMessageData['sender'] !=
+                                              widget.userId)
+                                      ? "$senderName: "
+                                      : "";
+
+                              // Display the last message
+                              return RichText(
+                                text: TextSpan(
                                   style: TextStyle(
-                                    color: userHasRead ? Colors.grey : null,
+                                    fontSize: 16,
+                                    fontWeight: userHasRead
+                                        ? FontWeight.normal
+                                        : FontWeight.bold,
+                                    color: userHasRead
+                                        ? Colors.grey
+                                        : CupertinoTheme.of(context)
+                                            .primaryColor,
                                   ),
+                                  children: [
+                                    //message sender
+                                    TextSpan(
+                                      text: prefix,
+                                    ),
+                                    TextSpan(
+                                      //message content
+                                      text: content,
+                                    ),
+                                    //message timestamp
+                                    TextSpan(
+                                      text:
+                                          "  •  ${secondsAgo < 10 ? "just now" : GetTimeAgo.parse(lastMessageData['timestamp'].toDate())}",
+                                      style: TextStyle(
+                                        color: userHasRead ? Colors.grey : null,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           );
                         }
                       },

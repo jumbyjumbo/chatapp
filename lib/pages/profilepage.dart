@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+
+import '../backend stuff/authservice.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
@@ -12,7 +15,9 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  late Stream<DocumentSnapshot> userDataStream;
+  // Stream to listen for online status
+  late Stream<bool> onlineStatusStream;
+  late Stream<DocumentSnapshot<Object>> userDataStream;
 
   @override
   void initState() {
@@ -21,6 +26,9 @@ class ProfilePageState extends State<ProfilePage> {
         .collection('users')
         .doc(widget.userId)
         .snapshots();
+
+    onlineStatusStream = OnlineStatusService(widget.userId)
+        .onlineStatus; // Initialize the stream
   }
 
   @override
@@ -127,19 +135,31 @@ class ProfilePageState extends State<ProfilePage> {
                     //profile picture
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.grey,
-                              width: 2,
-                            )),
-                        child: CircleAvatar(
-                          maxRadius: 40,
-                          backgroundColor: Colors.transparent,
-                          backgroundImage:
-                              NetworkImage(userData['profilepicture']),
-                        ),
+                      child: StreamBuilder<bool>(
+                        stream: onlineStatusStream,
+                        builder: (context, onlineStatusSnapshot) {
+                          // Determine the border color based on online status
+                          Color borderColor = onlineStatusSnapshot.hasData &&
+                                  onlineStatusSnapshot.data == true
+                              ? Colors.green
+                              : Colors.grey;
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: borderColor, // Use dynamic border color
+                                width: 2,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              maxRadius: 40,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage:
+                                  NetworkImage(userData['profilepicture']),
+                            ),
+                          );
+                        },
                       ),
                     ),
 
