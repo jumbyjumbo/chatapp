@@ -31,8 +31,8 @@ class AuthService {
   Future<void> markUserOnline(String userId) async {
     onlineRef.child(userId).set(true);
 
-    // Remove user from online list when they're no longer online
-    onlineRef.child(userId).onDisconnect().remove();
+    // Set user's online status to false when they're no longer online
+    onlineRef.child(userId).onDisconnect().set(false);
   }
 
   // Function to handle Google Sign-In
@@ -125,11 +125,11 @@ class AuthService {
   }
 
   // Function to handle sign out
-  Future<void> signOut() async {
+  Future<void> signOutUser() async {
     final currentUser = firebaseAuth.currentUser;
     if (currentUser != null) {
       // Mark the user as offline
-      await onlineRef.child(currentUser.uid).remove();
+      await onlineRef.child(currentUser.uid).set(false);
     }
     await firebaseAuth.signOut();
   }

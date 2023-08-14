@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../backend stuff/authservice.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
@@ -70,8 +71,12 @@ class ProfilePageState extends State<ProfilePage> {
                               CupertinoIcons.square_arrow_right,
                             ),
                             onPressed: () {
-                              //logout
-                              FirebaseAuth.instance.signOut();
+                              // Create an instance of AuthService
+                              AuthService authService =
+                                  AuthService(FirebaseAuth.instance);
+
+                              //use auth service signout fn
+                              authService.signOutUser();
 
                               //pop back to login page
                               // Pop all routes and go back to the root
