@@ -27,7 +27,7 @@ class AuthService {
   AuthService(this.auth);
   Stream<User?> get authStateChanges => auth.authStateChanges();
 
-  //mark the user as online
+  // Mark the user as online
   Future<void> markUserOnline(String userId) async {
     onlineRef.child(userId).set(true);
 

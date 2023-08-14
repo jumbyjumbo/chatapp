@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../backend stuff/authservice.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
@@ -14,19 +13,21 @@ class ProfilePage extends StatefulWidget {
 
 class ProfilePageState extends State<ProfilePage> {
   // Stream to listen for online status
-  late Stream<bool> onlineStatusStream;
+  late Stream<DocumentSnapshot> onlineStatusStream;
   late Stream<DocumentSnapshot<Object>> userDataStream;
 
   @override
   void initState() {
     super.initState();
+    // Initialize the stream to listen to the 'online' collection in Firestore
+    onlineStatusStream = FirebaseFirestore.instance
+        .collection('online')
+        .doc(widget.userId)
+        .snapshots();
     userDataStream = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.userId)
         .snapshots();
-
-    onlineStatusStream = OnlineStatusService(widget.userId)
-        .onlineStatus; // Initialize the stream
   }
 
   @override
@@ -39,6 +40,7 @@ class ProfilePageState extends State<ProfilePage> {
             !snapshot.hasData) {
           return const SizedBox.shrink();
         }
+
         //get user data
         Map<String, dynamic> userData =
             snapshot.data!.data() as Map<String, dynamic>;
@@ -133,14 +135,25 @@ class ProfilePageState extends State<ProfilePage> {
                     //profile picture
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: StreamBuilder<bool>(
+                      child: StreamBuilder<DocumentSnapshot>(
                         stream: onlineStatusStream,
                         builder: (context, onlineStatusSnapshot) {
-                          // Determine the border color based on online status
-                          Color borderColor = onlineStatusSnapshot.hasData &&
-                                  onlineStatusSnapshot.data == true
-                              ? Colors.green
-                              : Colors.grey;
+                          // Default to offline (grey border)
+                          Color borderColor = Colors.grey;
+
+                          // Check if the online status data is available
+                          if (onlineStatusSnapshot.connectionState ==
+                                  ConnectionState.active &&
+                              onlineStatusSnapshot.hasData &&
+                              onlineStatusSnapshot.data!.exists &&
+                              onlineStatusSnapshot.data!.get('isOnline') !=
+                                  null) {
+                            borderColor =
+                                onlineStatusSnapshot.data!.get('isOnline') ==
+                                        true
+                                    ? Colors.green
+                                    : Colors.grey; // Online
+                          }
 
                           return Container(
                             decoration: BoxDecoration(
@@ -160,7 +173,6 @@ class ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                     ),
-
                     //nb of posts + messages
                     const Expanded(
                       child: Row(
