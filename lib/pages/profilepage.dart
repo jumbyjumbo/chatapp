@@ -13,22 +13,23 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  // Stream to listen for online status
-  late Stream<DocumentSnapshot> onlineStatusStream;
+  // Stream user's data
   late Stream<DocumentSnapshot<Object>> userDataStream;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the stream to listen to the 'online' collection in Firestore
-    onlineStatusStream = FirebaseFirestore.instance
-        .collection('online')
-        .doc(widget.userId)
-        .snapshots();
-    userDataStream = FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .snapshots();
+  }
+
+  // Check if the user is online or was last seen less than 5 minutes ago
+  bool isUserOnline(DocumentSnapshot snapshot) {
+    if (snapshot.data() == null) return false;
+    final isOnline = snapshot.get('isOnline') ?? false;
+    final lastSeen = snapshot.get('lastSeen') as Timestamp?;
+    if (isOnline) return true;
+    if (lastSeen == null) return false;
+    final difference = DateTime.now().difference(lastSeen.toDate());
+    return difference.inMinutes < 5;
   }
 
   @override
@@ -48,6 +49,10 @@ class ProfilePageState extends State<ProfilePage> {
 
         // get user's friends
         List<String> friends = List<String>.from(userData['friends'] ?? []);
+
+        // Decide the border color based on user's online status
+        Color borderColor =
+            isUserOnline(snapshot.data!) ? Colors.green : Colors.grey;
 
         return CupertinoPageScaffold(
             //app bar
@@ -140,42 +145,20 @@ class ProfilePageState extends State<ProfilePage> {
                     //profile picture
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: StreamBuilder<DocumentSnapshot>(
-                        stream: onlineStatusStream,
-                        builder: (context, onlineStatusSnapshot) {
-                          // Default to offline (grey border)
-                          Color borderColor = Colors.grey;
-
-                          // Check if the online status data is available
-                          if (onlineStatusSnapshot.connectionState ==
-                                  ConnectionState.active &&
-                              onlineStatusSnapshot.hasData &&
-                              onlineStatusSnapshot.data!.exists &&
-                              onlineStatusSnapshot.data!.get('isOnline') !=
-                                  null) {
-                            borderColor =
-                                onlineStatusSnapshot.data!.get('isOnline') ==
-                                        true
-                                    ? Colors.green
-                                    : Colors.grey; // Online
-                          }
-
-                          return Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: borderColor, // Use dynamic border color
-                                width: 2,
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              maxRadius: 40,
-                              backgroundColor: Colors.transparent,
-                              backgroundImage:
-                                  NetworkImage(userData['profilepicture']),
-                            ),
-                          );
-                        },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: borderColor, // Use dynamic border color
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          maxRadius: 40,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage:
+                              NetworkImage(userData['profilepicture']),
+                        ),
                       ),
                     ),
                     //nb of posts + messages
