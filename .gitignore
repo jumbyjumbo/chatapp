@@ -14,6 +14,7 @@ python_fns
 migrate_working_dir/
 firebase.json
 CNAME
+hosting
 # IntelliJ related
 *.iml
 *.ipr
