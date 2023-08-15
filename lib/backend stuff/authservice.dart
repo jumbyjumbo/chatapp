@@ -19,8 +19,8 @@ class OnlineStatusService {
 
 class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final DatabaseReference onlineRef =
-      FirebaseDatabase.instance.ref().child('online');
+  final CollectionReference usersCollection =
+      FirebaseFirestore.instance.collection('users');
 
   //stream auth changes to other widgets
   final FirebaseAuth auth;
@@ -29,10 +29,18 @@ class AuthService {
 
   // Mark the user as online
   Future<void> markUserOnline(String userId) async {
-    onlineRef.child(userId).set(true);
+    await usersCollection.doc(userId).update({
+      'isOnline': true,
+      'lastSeen': FieldValue.serverTimestamp(),
+    });
+  }
 
-    // Set user's online status to false when they're no longer online
-    onlineRef.child(userId).onDisconnect().set(false);
+  // Mark the user as offline
+  Future<void> markUserOffline(String userId) async {
+    await usersCollection.doc(userId).update({
+      'isOnline': false,
+      'lastSeen': FieldValue.serverTimestamp(),
+    });
   }
 
   // Function to handle Google Sign-In
@@ -128,8 +136,7 @@ class AuthService {
   Future<void> signOutUser() async {
     final currentUser = firebaseAuth.currentUser;
     if (currentUser != null) {
-      // Mark the user as offline
-      await onlineRef.child(currentUser.uid).set(false);
+      await markUserOffline(currentUser.uid);
     }
     await firebaseAuth.signOut();
   }
