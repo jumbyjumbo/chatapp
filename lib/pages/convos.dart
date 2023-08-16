@@ -103,10 +103,12 @@ class ConvoListState extends State<ConvoList> {
               onPressed: () {
                 //show modal bottom sheet: add to convo (friends list)
                 showCupertinoModalBottomSheet(
-                    context: context,
-                    builder: (context) => FriendsList(
-                          userId: user.uid,
-                        ));
+                  elevation: 20,
+                  context: context,
+                  builder: (context) => FriendsList(
+                    userId: user.uid,
+                  ),
+                );
               },
             ),
 

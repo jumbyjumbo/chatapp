@@ -18,7 +18,7 @@ dependencies:
   get_time_ago: ^1.2.4
   google_sign_in: ^6.1.4
   image_picker: ^1.0.1
-  image_picker_for_web: ^2.2.0
+  image_picker_for_web: ^3.0.0
   modal_bottom_sheet: ^3.0.0-pre
   path: ^1.8.3
   peanut: ^5.0.0
