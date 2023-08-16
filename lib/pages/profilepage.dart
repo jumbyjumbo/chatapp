@@ -19,27 +19,51 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+
+    // Initialize userDataStream here
+    userDataStream = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .snapshots();
+  }
+
+  @override
+  void dispose() {
+    // You can add any other disposals if needed here
+    super.dispose();
   }
 
   // Check if the user is online or was last seen less than 5 minutes ago
   bool isUserOnline(DocumentSnapshot snapshot) {
-    if (snapshot.data() == null) return false;
-    final isOnline = snapshot.get('isOnline') ?? false;
-    final lastSeen = snapshot.get('lastSeen') as Timestamp?;
+    final data = snapshot.data() as Map<String, dynamic>?;
+
+    if (data == null) return false;
+
+    // Check if 'isOnline' field exists, else use a default value
+    final isOnline = data.containsKey('isOnline') ? data['isOnline'] : false;
+
+    // Check if 'lastSeen' field exists, else use a default value
+    final lastSeen =
+        data.containsKey('lastSeen') ? data['lastSeen'] as Timestamp? : null;
+
     if (isOnline) return true;
     if (lastSeen == null) return false;
+
     final difference = DateTime.now().difference(lastSeen.toDate());
     return difference.inMinutes < 5;
   }
 
+  bool isListeningToStream = true;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: userDataStream,
+      stream: isListeningToStream ? userDataStream : null,
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting ||
-            !snapshot.hasData) {
+            !snapshot.hasData ||
+            snapshot.data!.data() == null) {
           return const SizedBox.shrink();
         }
 
@@ -76,6 +100,11 @@ class ProfilePageState extends State<ProfilePage> {
                               CupertinoIcons.square_arrow_right,
                             ),
                             onPressed: () async {
+                              // Stop listening to the stream
+                              setState(() {
+                                isListeningToStream = false;
+                              });
+
                               // Create an instance of AuthService
                               AuthService authService =
                                   AuthService(FirebaseAuth.instance);
@@ -84,9 +113,8 @@ class ProfilePageState extends State<ProfilePage> {
                               await authService.signOutUser();
 
                               //pop back to login page
-                              // Pop all routes and go back to the root
                               Navigator.of(context)
-                                  .popUntil((route) => route.isFirst);
+                                  .popUntil((route) => route.isFirst == true);
                             },
                           )
                         : const SizedBox.shrink()),
@@ -142,7 +170,7 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
 
-                    //profile picture
+                    //profile picture w/ streamed border color for online status
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Container(
