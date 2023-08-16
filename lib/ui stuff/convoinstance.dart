@@ -151,24 +151,10 @@ class ConvoInstanceState extends State<ConvoInstance> {
             children: [
               //convo picture
 
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: userHasRead
-                      ? Border.all(
-                          color: Colors.transparent, // Border color
-                          width: 2, // Border width
-                        )
-                      : Border.all(
-                          color: Colors.green, // Border color
-                          width: 2, // Border width
-                        ),
-                ),
-                child: CircleAvatar(
-                  radius: 34,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: NetworkImage(convoPicDisplayed),
-                ),
+              CircleAvatar(
+                radius: 34,
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(convoPicDisplayed),
               ),
 
               //spacing

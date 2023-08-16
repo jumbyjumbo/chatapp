@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pleasepleasepleaseplease/ui%20stuff/onlinestatusdot.dart';
 import '../backend stuff/authservice.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -33,26 +34,6 @@ class ProfilePageState extends State<ProfilePage> {
     super.dispose();
   }
 
-  // Check if the user is online or was last seen less than 5 minutes ago
-  bool isUserOnline(DocumentSnapshot snapshot) {
-    final data = snapshot.data() as Map<String, dynamic>?;
-
-    if (data == null) return false;
-
-    // Check if 'isOnline' field exists, else use a default value
-    final isOnline = data.containsKey('isOnline') ? data['isOnline'] : false;
-
-    // Check if 'lastSeen' field exists, else use a default value
-    final lastSeen =
-        data.containsKey('lastSeen') ? data['lastSeen'] as Timestamp? : null;
-
-    if (isOnline) return true;
-    if (lastSeen == null) return false;
-
-    final difference = DateTime.now().difference(lastSeen.toDate());
-    return difference.inMinutes < 5;
-  }
-
   bool isListeningToStream = true;
 
   @override
@@ -74,9 +55,7 @@ class ProfilePageState extends State<ProfilePage> {
         // get user's friends
         List<String> friends = List<String>.from(userData['friends'] ?? []);
 
-        // Decide the border color based on user's online status
-        Color borderColor =
-            isUserOnline(snapshot.data!) ? Colors.green : Colors.grey;
+        //set online status dot color
 
         return CupertinoPageScaffold(
             //app bar
@@ -171,24 +150,19 @@ class ProfilePageState extends State<ProfilePage> {
                     ),
 
                     //profile picture w/ streamed border color for online status
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: borderColor, // Use dynamic border color
-                            width: 2,
-                          ),
-                        ),
-                        child: CircleAvatar(
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        CircleAvatar(
                           maxRadius: 40,
                           backgroundColor: Colors.transparent,
                           backgroundImage:
                               NetworkImage(userData['profilepicture']),
                         ),
-                      ),
+                        OnlineStatusDot(userData: userData, size: 40 * 0.45)
+                      ],
                     ),
+
                     //nb of posts + messages
                     const Expanded(
                       child: Row(
@@ -282,6 +256,7 @@ class ProfilePageState extends State<ProfilePage> {
                     scrollDirection: Axis.horizontal,
                     itemCount: friends.length,
                     itemBuilder: (BuildContext context, int index) {
+                      //get friend's data
                       return FutureBuilder(
                         future: FirebaseFirestore.instance
                             .collection('users')
@@ -294,8 +269,15 @@ class ProfilePageState extends State<ProfilePage> {
                               !friendSnapshot.hasData) {
                             return const SizedBox();
                           } else {
+                            //get friend's data
+                            Map<String, dynamic> friendData =
+                                friendSnapshot.data!.data()
+                                    as Map<String, dynamic>;
+
                             String profilePicture =
                                 friendSnapshot.data!.get('profilepicture');
+
+                            //display the friend profile picture with link to their profile
                             return Padding(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 4),
@@ -310,10 +292,17 @@ class ProfilePageState extends State<ProfilePage> {
                                         ),
                                       );
                                     },
-                                    child: CircleAvatar(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundImage:
-                                          NetworkImage(profilePicture),
+                                    child: Stack(
+                                      alignment: Alignment.bottomRight,
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: Colors.transparent,
+                                          foregroundImage:
+                                              NetworkImage(profilePicture),
+                                        ),
+                                        OnlineStatusDot(
+                                            userData: friendData, size: 10),
+                                      ],
                                     ),
                                   ),
                                 ));
