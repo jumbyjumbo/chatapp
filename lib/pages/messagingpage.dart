@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/pages/profilepage.dart';
+import '../ui stuff/onlinestatusdot.dart';
 import '/ui stuff/uifx.dart';
 import 'convoinfo.dart';
 import 'dart:io';
@@ -266,63 +267,82 @@ class MessagesState extends State<Messagingpage> {
             contentWidget = const SizedBox.shrink();
           }
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            //message row
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                //message sender's profile picture
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProfilePage(userId: data['sender']),
-                      ),
-                    );
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(data[
-                        'senderProfilePicture']), //get the profile picture from the message data
-                    backgroundColor: Colors.transparent, // no pp background
-                  ),
-                ),
+          return StreamBuilder<DocumentSnapshot>(
+              stream:
+                  //get the user data of the sender
+                  FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(data['sender'])
+                      .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<DocumentSnapshot> userSnapshot) {
+                if (userSnapshot.connectionState == ConnectionState.waiting ||
+                    !userSnapshot.hasData) {
+                  return const SizedBox.shrink();
+                }
+                Map<String, dynamic> userData =
+                    userSnapshot.data!.data()! as Map<String, dynamic>;
 
-                //spacing between profile picture ann message content
-                const SizedBox(width: 8),
-
-                //sender name + message content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      //message sender's name
-                      Text(
-                        data['senderName'],
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProfilePage(userId: data['sender']),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
+                              backgroundImage:
+                                  NetworkImage(data['senderProfilePicture']),
+                              backgroundColor: Colors.transparent,
+                            ),
+                          ),
+                          OnlineStatusDot(userData: userData, size: 12),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      //message content
-                      contentWidget,
+                      //spacing between profile picture ann message content
+                      const SizedBox(width: 8),
+
+                      //sender name + message content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //message sender's name
+                            Text(
+                              data['senderName'],
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 4),
+                            //message content
+                            contentWidget,
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          );
+                );
+              });
         }).toList();
-
-        //add extra space at the end of messages
-        messageWidgets.insert(
-            0, const Padding(padding: EdgeInsets.symmetric(vertical: 30)));
 
         return ListView(
           reverse: true,
-          // map each message to a widget
-          children: messageWidgets,
+          children: [
+            const Padding(padding: EdgeInsets.symmetric(vertical: 30)),
+            ...messageWidgets, // spread operator to include all message widgets
+          ],
         );
       },
     );

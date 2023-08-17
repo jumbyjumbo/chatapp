@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 
+import 'convostatusdot.dart';
+
 class ConvoInstance extends StatefulWidget {
   final Map<String, dynamic> convoData;
   final String conversationId;
@@ -151,10 +153,22 @@ class ConvoInstanceState extends State<ConvoInstance> {
             children: [
               //convo picture
 
-              CircleAvatar(
-                radius: 34,
-                backgroundColor: Colors.transparent,
-                backgroundImage: NetworkImage(convoPicDisplayed),
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 34,
+                    backgroundColor: Colors.transparent,
+                    backgroundImage: NetworkImage(convoPicDisplayed),
+                  ),
+                  Positioned(
+                    right: 4,
+                    bottom: 4,
+                    child: ConvoStatusDot(
+                      convoData: widget.convoData,
+                      size: 14, // Adjust the size as you see fit
+                    ),
+                  )
+                ],
               ),
 
               //spacing

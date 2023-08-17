@@ -159,7 +159,7 @@ class ProfilePageState extends State<ProfilePage> {
                           backgroundImage:
                               NetworkImage(userData['profilepicture']),
                         ),
-                        OnlineStatusDot(userData: userData, size: 40 * 0.45)
+                        OnlineStatusDot(userData: userData, size: 40 * 0.4)
                       ],
                     ),
 
@@ -282,28 +282,28 @@ class ProfilePageState extends State<ProfilePage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 4),
                                 child: FittedBox(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ProfilePage(
-                                              userId: friends[index]),
-                                        ),
-                                      );
-                                    },
-                                    child: Stack(
-                                      alignment: Alignment.bottomRight,
-                                      children: [
-                                        CircleAvatar(
+                                  child: Stack(
+                                    alignment: Alignment.bottomRight,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ProfilePage(
+                                                  userId: friends[index]),
+                                            ),
+                                          );
+                                        },
+                                        child: CircleAvatar(
                                           backgroundColor: Colors.transparent,
                                           foregroundImage:
                                               NetworkImage(profilePicture),
                                         ),
-                                        OnlineStatusDot(
-                                            userData: friendData, size: 10),
-                                      ],
-                                    ),
+                                      ),
+                                      OnlineStatusDot(
+                                          userData: friendData, size: 10),
+                                    ],
                                   ),
                                 ));
                           }

@@ -28,15 +28,15 @@ class OnlineStatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //border around status dot
-    double statusDotBorder = size * 1.33; // Outer container is slightly bigger
+    double statusDotBorder = size * 1.45; // Outer container is slightly bigger
 
     return Container(
       width: statusDotBorder,
       height: statusDotBorder,
       decoration: BoxDecoration(
-        color: CupertinoTheme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
+        color: CupertinoTheme.of(context).primaryColor == CupertinoColors.black
+            ? CupertinoColors.white
+            : CupertinoColors.black,
         shape: BoxShape.circle,
       ),
       child: Center(

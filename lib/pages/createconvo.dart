@@ -209,7 +209,7 @@ class FriendsListState extends State<FriendsList> {
             ],
           ),
 
-          //create convo button
+          //create convo button/text field
           Positioned(
             bottom: 0,
             left: 0,

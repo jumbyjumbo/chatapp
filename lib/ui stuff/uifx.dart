@@ -15,7 +15,7 @@ class BlurEffectView extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
-          color: CupertinoColors.lightBackgroundGray.withOpacity(0.5),
+          color: CupertinoColors.lightBackgroundGray.withOpacity(0.25),
           child: child,
         ),
       ),
