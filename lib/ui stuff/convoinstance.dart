@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_time_ago/get_time_ago.dart';
+import 'package:async/async.dart';
 
 import 'convostatusdot.dart';
 
@@ -22,6 +23,26 @@ class ConvoInstance extends StatefulWidget {
 }
 
 class ConvoInstanceState extends State<ConvoInstance> {
+  //
+  Stream<List<Map<String, dynamic>>> membersDataStream(
+      List<String> memberIds, String currentUserId) {
+    final usersCollection = FirebaseFirestore.instance.collection('users');
+
+    // Remove the current user from the list
+    List<String> otherMembers =
+        memberIds.where((userId) => userId != currentUserId).toList();
+
+    List<Stream<DocumentSnapshot>> userStreams = otherMembers
+        .map((userId) => usersCollection.doc(userId).snapshots())
+        .toList();
+
+    return StreamZip<DocumentSnapshot>(userStreams).map((listOfUserDocs) {
+      return listOfUserDocs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    });
+  }
+
   // Set the conversation picture and name
   Future<Map<String, String>> setConvoPicAndName(
       Map<String, dynamic> convoData, String userId) async {
@@ -48,6 +69,8 @@ class ConvoInstanceState extends State<ConvoInstance> {
         String lastSentPictureUrl =
             lastImageSentSnapshot.docs[0]['content'] ?? defaultConvoPic;
         convoPicUrl = lastSentPictureUrl;
+
+        //if there are only 2 members, get the other user's pfp and name
       } else if (convoData['members'].length == 2) {
         // If there are only 2 members and no picture message, get the other user's profile picture and name
         String otherUserId = convoData['members'][0] == userId
@@ -152,7 +175,6 @@ class ConvoInstanceState extends State<ConvoInstance> {
           return Row(
             children: [
               //convo picture
-
               Stack(
                 children: [
                   CircleAvatar(
@@ -161,13 +183,22 @@ class ConvoInstanceState extends State<ConvoInstance> {
                     backgroundImage: NetworkImage(convoPicDisplayed),
                   ),
                   Positioned(
-                    right: 4,
-                    bottom: 4,
-                    child: ConvoStatusDot(
-                      convoData: widget.convoData,
-                      size: 14, // Adjust the size as you see fit
-                    ),
-                  )
+                      right: 4,
+                      bottom: 4,
+                      //status dot to check if a member is online
+                      child: StreamBuilder<List<Map<String, dynamic>>>(
+                        stream: membersDataStream(
+                            widget.convoData['members'].cast<String>(),
+                            widget.userId),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return ConvoStatusDot(membersData: snapshot.data!);
+                          } else {
+                            return const SizedBox
+                                .shrink(); // or another placeholder widget
+                          }
+                        },
+                      )),
                 ],
               ),
 
