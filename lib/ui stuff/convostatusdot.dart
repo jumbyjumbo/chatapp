@@ -16,7 +16,7 @@ class ConvoStatusDot extends StatelessWidget {
     }
 
     // If at least one member has been active in the past 10 minutes, return orange
-    final tenMinutesAgo = DateTime.now().subtract(Duration(minutes: 10));
+    final tenMinutesAgo = DateTime.now().subtract(const Duration(minutes: 10));
     if (membersData.any((userData) {
       Timestamp? lastSeen = userData['lastSeen'] as Timestamp?;
       if (lastSeen == null) return false;

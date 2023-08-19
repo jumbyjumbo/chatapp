@@ -26,14 +26,16 @@ class ConvoInstanceState extends State<ConvoInstance> {
   //
   Stream<List<Map<String, dynamic>>> membersDataStream(
       List<String> memberIds, String currentUserId) {
-    final usersCollection = FirebaseFirestore.instance.collection('users');
-
     // Remove the current user from the list
     List<String> otherMembers =
         memberIds.where((userId) => userId != currentUserId).toList();
 
+    // Create a list of streams of the other members' data
     List<Stream<DocumentSnapshot>> userStreams = otherMembers
-        .map((userId) => usersCollection.doc(userId).snapshots())
+        .map((userId) => FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots())
         .toList();
 
     return StreamZip<DocumentSnapshot>(userStreams).map((listOfUserDocs) {
