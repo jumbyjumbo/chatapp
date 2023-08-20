@@ -6,7 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/pages/login.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
-import '../backend stuff/authservice.dart';
+import '../backend stuff/auth/authservice.dart';
 import '../ui stuff/convoinstance.dart';
 import 'messagingpage.dart';
 import 'convoinfo.dart';

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pleasepleasepleaseplease/ui%20stuff/onlinestatusdot.dart';
-import '../backend stuff/authservice.dart';
+import '../backend stuff/auth/authservice.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
@@ -90,10 +90,6 @@ class ProfilePageState extends State<ProfilePage> {
 
                               //use auth service signout fn
                               await authService.signOutUser();
-
-                              //pop back to login page
-                              Navigator.of(context)
-                                  .popUntil((route) => route.isFirst == true);
                             },
                           )
                         : const SizedBox.shrink()),
