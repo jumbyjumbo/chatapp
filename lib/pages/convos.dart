@@ -54,11 +54,13 @@ class ConvoListState extends State<ConvoList> {
           if (user != null) {
             return buildUserInterface(user, context);
           } else {
-            // If the user is not logged in, navigate to the login page.
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(builder: (context) => const Login()),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Your navigation action
+              Navigator.of(context).pushReplacement(
+                CupertinoPageRoute(builder: (context) => const Login()),
+              );
+            });
+
             return const SizedBox
                 .shrink(); // This won't actually render, since we're navigating away.
           }

@@ -1,5 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../backend stuff/auth/authbloc.dart';
+import '../backend stuff/auth/authevent.dart';
 import '../backend stuff/auth/authservice.dart';
 
 // Define Login widget which is a StatefulWidget to handle mutable states
@@ -24,8 +27,12 @@ class LoginState extends State<Login> {
         child: GestureDetector(
           child: const Text("Login"),
           onTap: () async {
-            // Here we call the signInWithGoogle method from our AuthService
-            await authService.signInWithGoogle();
+            bool isSuccess = await authService.signInWithGoogle();
+            if (isSuccess) {
+              // ignore: use_build_context_synchronously
+              context.read<AuthBloc>().add(UserLoggedIn());
+              print("Login successful");
+            }
           },
         ),
       ),

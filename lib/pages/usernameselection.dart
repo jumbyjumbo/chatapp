@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../backend stuff/auth/authbloc.dart';
+import '../backend stuff/auth/authevent.dart';
 import 'convos.dart';
 
 class UsernameSelection extends StatefulWidget {
@@ -77,12 +79,9 @@ class UsernameSelectionState extends State<UsernameSelection> {
                         .doc(currentUser?.uid)
                         .set({'username': username}, SetOptions(merge: true));
 
-                    // Navigate to ConvoList page
+                    // Inform the AuthBloc that the user has logged in
                     // ignore: use_build_context_synchronously
-                    Navigator.pushReplacement(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => const ConvoList()));
+                    context.read<AuthBloc>().add(UserLoggedIn());
                   } else {
                     //if username exists, show alert
                     // ignore: use_build_context_synchronously

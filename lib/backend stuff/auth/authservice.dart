@@ -44,7 +44,7 @@ class AuthService {
   }
 
   // Function to handle Google Sign-In
-  Future<void> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     UserCredential? userCredential;
 
     if (kIsWeb) {
@@ -71,8 +71,11 @@ class AuthService {
         await storeUserInFirestore(user);
         // mark user as online
         await markUserOnline(user.uid);
+
+        return true; // Successfully signed in
       }
     }
+    return false; // Failed to sign in
   }
 
   // Function to store user data in Firestore if the user does not already exist
@@ -133,11 +136,13 @@ class AuthService {
   }
 
   // Function to handle sign out
-  Future<void> signOutUser() async {
+  Future<bool> signOutUser() async {
     final currentUser = firebaseAuth.currentUser;
     if (currentUser != null) {
       await markUserOffline(currentUser.uid);
+      await firebaseAuth.signOut();
+      return true; // Successfully signed out
     }
-    await firebaseAuth.signOut();
+    return false; // Failed to sign out
   }
 }
