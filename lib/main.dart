@@ -100,14 +100,11 @@ class _MyAppState extends State<MyApp> {
         home: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is Authenticated) {
-              // Navigate to ConvoPage if needed
-              Navigator.pushReplacementNamed(context, '/convos');
+              Navigator.of(context).pushReplacementNamed('/convos');
             } else if (state is Unauthenticated) {
-              // Navigate to LoginPage if needed
-              Navigator.pushReplacementNamed(context, '/login');
+              Navigator.of(context).pushReplacementNamed('/login');
             } else if (state is UsernameNotSet) {
-              // Navigate to UsernameSelection if needed
-              Navigator.pushReplacementNamed(context, '/usernameSelection');
+              Navigator.of(context).pushReplacementNamed('/usernameSelection');
             }
           },
           child: BlocBuilder<AuthBloc, AuthState>(
