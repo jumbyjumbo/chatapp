@@ -6,6 +6,12 @@ import 'authstate.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService _authService;
 
+  @override
+  void onTransition(Transition<AuthEvent, AuthState> transition) {
+    print(transition);
+    super.onTransition(transition);
+  }
+
   AuthBloc({required AuthService authService})
       : _authService = authService,
         super(AuthInitial()) {
@@ -31,39 +37,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onUserLoggedIn(UserLoggedIn event, Emitter<AuthState> emit) async {
-    final currentUser = _authService.firebaseAuth.currentUser;
-    if (currentUser != null) {
+    bool isSuccess = await _authService.signInWithGoogle();
+    if (isSuccess) {
+      //get user
+      final currentUser = _authService.firebaseAuth.currentUser;
+      //get their data
       final userData =
-          await _authService.usersCollection.doc(currentUser.uid).get();
+          await _authService.usersCollection.doc(currentUser!.uid).get();
+      //get the data as a map
       final data = userData.data() as Map<String, dynamic>;
+      //check their username
       if (data['username'] == null || data['username'] == "") {
         emit(UsernameNotSet());
       } else {
         emit(Authenticated());
       }
-    } else {
-      emit(Unauthenticated());
     }
   }
 
   Future<void> _onUserLoggedOut(
       UserLoggedOut event, Emitter<AuthState> emit) async {
-    print("UserLoggedOut event received");
-
+    //logout
     await _authService.signOutUser();
-
-    if (_authService.firebaseAuth.currentUser == null) {
-      print("Firebase user is null. Emitting Unauthenticated.");
-      emit(Unauthenticated());
-    } else {
-      print(
-          "Firebase user is still present after signing out. This shouldn't happen.");
-    }
-  }
-
-  @override
-  void onTransition(Transition<AuthEvent, AuthState> transition) {
-    print(transition);
-    super.onTransition(transition);
+    //tell authbloc that user is logged out
+    emit(Unauthenticated());
   }
 }

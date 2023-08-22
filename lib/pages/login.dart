@@ -26,13 +26,8 @@ class LoginState extends State<Login> {
       child: Center(
         child: GestureDetector(
           child: const Text("Login"),
-          onTap: () async {
-            bool isSuccess = await authService.signInWithGoogle();
-            if (isSuccess) {
-              // ignore: use_build_context_synchronously
-              context.read<AuthBloc>().add(UserLoggedIn());
-              print("Login successful");
-            }
+          onTap: () {
+            context.read<AuthBloc>().add(UserLoggedIn());
           },
         ),
       ),

@@ -12,5 +12,3 @@ class Authenticated extends AuthState {}
 class Unauthenticated extends AuthState {}
 
 class UsernameNotSet extends AuthState {}
-
-class CheckingUserData extends AuthState {}

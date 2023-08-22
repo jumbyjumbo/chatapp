@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../backend stuff/auth/authbloc.dart';
 import '../backend stuff/auth/authevent.dart';
-import 'convos.dart';
 
 class UsernameSelection extends StatefulWidget {
   const UsernameSelection({super.key});

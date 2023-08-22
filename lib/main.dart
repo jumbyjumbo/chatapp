@@ -38,7 +38,6 @@ class _MyAppState extends State<MyApp> {
   Timer? _inactivityTimer;
   late final AppLifecycleListener _lifecycleListener;
 
-//
   @override
   void initState() {
     super.initState();
@@ -86,41 +85,25 @@ class _MyAppState extends State<MyApp> {
       create: (context) =>
           AuthBloc(authService: _authService)..add(AppStarted()),
       child: CupertinoApp(
-        routes: {
-          '/login': (context) => const Login(),
-          '/convos': (context) => const ConvoList(),
-          '/usernameSelection': (context) => const UsernameSelection(),
-        },
         title: "Flow",
         theme: CupertinoThemeData(
           primaryColor: CupertinoTheme.brightnessOf(context) == Brightness.light
               ? CupertinoColors.black
               : CupertinoColors.white,
         ),
-        home: BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
-            if (state is Authenticated) {
-              Navigator.of(context).pushReplacementNamed('/convos');
-            } else if (state is Unauthenticated) {
-              Navigator.of(context).pushReplacementNamed('/login');
-            } else if (state is UsernameNotSet) {
-              Navigator.of(context).pushReplacementNamed('/usernameSelection');
+        home: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            switch (state.runtimeType) {
+              case Unauthenticated:
+                return const Login();
+              case UsernameNotSet:
+                return const UsernameSelection();
+              case Authenticated:
+                return const ConvoList();
+              default:
+                return const SizedBox.shrink();
             }
           },
-          child: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              print('Current Auth State: $state');
-              if (state is Unauthenticated) {
-                return const Login();
-              } else if (state is UsernameNotSet) {
-                return const UsernameSelection();
-              } else if (state is Authenticated) {
-                return const ConvoList();
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
-          ),
         ),
         debugShowCheckedModeBanner: false,
       ),

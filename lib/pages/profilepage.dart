@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pleasepleasepleaseplease/ui%20stuff/onlinestatusdot.dart';
 import '../backend stuff/auth/authbloc.dart';
 import '../backend stuff/auth/authevent.dart';
-import '../backend stuff/auth/authservice.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
@@ -33,21 +32,17 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   void dispose() {
-    // You can add any other disposals if needed here
     super.dispose();
   }
-
-  bool isListeningToStream = true;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: isListeningToStream ? userDataStream : null,
+      stream: userDataStream,
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting ||
-            !snapshot.hasData ||
-            snapshot.data!.data() == null) {
+            !snapshot.hasData) {
           return const SizedBox.shrink();
         }
 
@@ -81,23 +76,10 @@ class ProfilePageState extends State<ProfilePage> {
                             child: const Icon(
                               CupertinoIcons.square_arrow_right,
                             ),
-                            onPressed: () async {
-                              // Stop listening to the stream
-                              setState(() {
-                                isListeningToStream = false;
-                              });
-
-                              // Create an instance of AuthService
-                              AuthService authService =
-                                  AuthService(FirebaseAuth.instance);
-
-                              //use auth service signout fn
-                              await authService.signOutUser();
-                              if (FirebaseAuth.instance.currentUser == null) {
-                                //tell the authbloc that the user is logged out
-                                // ignore: use_build_context_synchronously
-                                context.read<AuthBloc>().add(UserLoggedOut());
-                              }
+                            onPressed: () {
+                              // Logout user
+                              context.read<AuthBloc>().add(UserLoggedOut());
+                              Navigator.of(context).pop();
                             },
                           )
                         : const SizedBox.shrink()),
