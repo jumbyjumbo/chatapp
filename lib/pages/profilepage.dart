@@ -37,270 +37,279 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: userDataStream,
-      builder:
-          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting ||
-            !snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        Navigator.of(context).pop(); // Pop the page off the stack
+      });
+      return const SizedBox.shrink();
+    } else {
+      return StreamBuilder<DocumentSnapshot>(
+        stream: userDataStream,
+        builder:
+            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              !snapshot.hasData) {
+            return const SizedBox.shrink();
+          }
 
-        //get user data
-        Map<String, dynamic> userData =
-            snapshot.data!.data() as Map<String, dynamic>;
+          //get user data
+          Map<String, dynamic> userData =
+              snapshot.data!.data() as Map<String, dynamic>;
 
-        // get user's friends
-        List<String> friends = List<String>.from(userData['friends'] ?? []);
+          // get user's friends
+          List<String> friends = List<String>.from(userData['friends'] ?? []);
 
-        //set online status dot color
+          //set online status dot color
 
-        return CupertinoPageScaffold(
-            //app bar
-            navigationBar: CupertinoNavigationBar(
-                //display user name
-                middle: FittedBox(
-                  child: Text(
-                    '${userData['username']}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                //logout button if user profile is the current user's profile
-                trailing:
-                    widget.userId == FirebaseAuth.instance.currentUser!.uid
-                        ? CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            child: const Icon(
-                              CupertinoIcons.square_arrow_right,
-                            ),
-                            onPressed: () {
-                              // Logout user
-                              context.read<AuthBloc>().add(UserLoggedOut());
-                              Navigator.of(context).pop();
-                            },
-                          )
-                        : const SizedBox.shrink()),
-
-            //user profile
-            child: Column(
-              //align at the bottom of screen
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                //profile picture + user stats
-                Row(
-                  children: [
-                    //nb of friends + convos
-                    Expanded(
-                      child: Row(
-                        children: [
-                          //nb of friends
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Text(
-                                  '${friends.length}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Text(
-                                  'Friends',
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //nb of convos
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Text(
-                                  '${userData['convos'].length}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Text(
-                                  'Convos',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    //profile picture w/ streamed border color for online status
-                    Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        CircleAvatar(
-                          maxRadius: 40,
-                          backgroundColor: Colors.transparent,
-                          backgroundImage:
-                              NetworkImage(userData['profilepicture']),
-                        ),
-                        OnlineStatusDot(userData: userData, size: 40 * 0.4)
-                      ],
-                    ),
-
-                    //nb of posts + messages
-                    const Expanded(
-                      child: Row(
-                        children: [
-                          //nb of messages
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Text(
-                                  '0',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Messages',
-                                ),
-                              ],
-                            ),
-                          ),
-                          //nb of posts
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Text(
-                                  '0',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Posts',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                //user name
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    '${userData['name']}',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                //user bio
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
+          return CupertinoPageScaffold(
+              //app bar
+              navigationBar: CupertinoNavigationBar(
+                  //display user name
+                  middle: FittedBox(
                     child: Text(
-                      '${userData['bio']}',
-                      textAlign: TextAlign.center,
+                      '${userData['username']}',
                       style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // friends list
-                Container(
-                  height: 60,
-                  // Border
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey,
-                        width: 0.5,
-                      ),
-                      top: BorderSide(
-                        color: Colors.grey,
-                        width: 0.5,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
 
-                  // List of friends
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: friends.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      //get friend's data
-                      return FutureBuilder(
-                        future: FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(friends[index])
-                            .get(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<DocumentSnapshot> friendSnapshot) {
-                          if (friendSnapshot.connectionState ==
-                                  ConnectionState.waiting ||
-                              !friendSnapshot.hasData) {
-                            return const SizedBox();
-                          } else {
-                            //get friend's data
-                            Map<String, dynamic> friendData =
-                                friendSnapshot.data!.data()
-                                    as Map<String, dynamic>;
+                  //logout button if user profile is the current user's profile
+                  trailing:
+                      widget.userId == FirebaseAuth.instance.currentUser!.uid
+                          ? CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(
+                                CupertinoIcons.square_arrow_right,
+                              ),
+                              onPressed: () {
+                                // Logout user
+                                context.read<AuthBloc>().add(UserLoggedOut());
+                                Navigator.of(context).pop();
+                              },
+                            )
+                          : const SizedBox.shrink()),
 
-                            String profilePicture =
-                                friendSnapshot.data!.get('profilepicture');
-
-                            //display the friend profile picture with link to their profile
-                            return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 4),
-                                child: FittedBox(
-                                  child: Stack(
-                                    alignment: Alignment.bottomRight,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ProfilePage(
-                                                  userId: friends[index]),
-                                            ),
-                                          );
-                                        },
-                                        child: CircleAvatar(
-                                          backgroundColor: Colors.transparent,
-                                          foregroundImage:
-                                              NetworkImage(profilePicture),
-                                        ),
-                                      ),
-                                      OnlineStatusDot(
-                                          userData: friendData, size: 10),
-                                    ],
+              //user profile
+              child: Column(
+                //align at the bottom of screen
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  //profile picture + user stats
+                  Row(
+                    children: [
+                      //nb of friends + convos
+                      Expanded(
+                        child: Row(
+                          children: [
+                            //nb of friends
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '${friends.length}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ));
-                          }
-                        },
-                      );
-                    },
+                                  const Text(
+                                    'Friends',
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            //nb of convos
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '${userData['convos'].length}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Convos',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      //profile picture w/ streamed border color for online status
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            maxRadius: 40,
+                            backgroundColor: Colors.transparent,
+                            backgroundImage:
+                                NetworkImage(userData['profilepicture']),
+                          ),
+                          OnlineStatusDot(userData: userData, size: 40 * 0.4)
+                        ],
+                      ),
+
+                      //nb of posts + messages
+                      const Expanded(
+                        child: Row(
+                          children: [
+                            //nb of messages
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '0',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Messages',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            //nb of posts
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '0',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Posts',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              ],
-            ));
-      },
-    );
+
+                  //user name
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      '${userData['name']}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  //user bio
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${userData['bio']}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // friends list
+                  Container(
+                    height: 60,
+                    // Border
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey,
+                          width: 0.5,
+                        ),
+                        top: BorderSide(
+                          color: Colors.grey,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+
+                    // List of friends
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: friends.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        //get friend's data
+                        return FutureBuilder(
+                          future: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(friends[index])
+                              .get(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<DocumentSnapshot> friendSnapshot) {
+                            if (friendSnapshot.connectionState ==
+                                    ConnectionState.waiting ||
+                                !friendSnapshot.hasData) {
+                              return const SizedBox();
+                            } else {
+                              //get friend's data
+                              Map<String, dynamic> friendData =
+                                  friendSnapshot.data!.data()
+                                      as Map<String, dynamic>;
+
+                              String profilePicture =
+                                  friendSnapshot.data!.get('profilepicture');
+
+                              //display the friend profile picture with link to their profile
+                              return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 4),
+                                  child: FittedBox(
+                                    child: Stack(
+                                      alignment: Alignment.bottomRight,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ProfilePage(
+                                                        userId: friends[index]),
+                                              ),
+                                            );
+                                          },
+                                          child: CircleAvatar(
+                                            backgroundColor: Colors.transparent,
+                                            foregroundImage:
+                                                NetworkImage(profilePicture),
+                                          ),
+                                        ),
+                                        OnlineStatusDot(
+                                            userData: friendData, size: 10),
+                                      ],
+                                    ),
+                                  ));
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  )
+                ],
+              ));
+        },
+      );
+    }
   }
 }

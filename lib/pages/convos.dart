@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:pleasepleasepleaseplease/pages/login.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
-import '../backend stuff/auth/authservice.dart';
 import '../ui stuff/convoinstance.dart';
 import 'messagingpage.dart';
 import 'convoinfo.dart';
@@ -23,13 +21,6 @@ class ConvoList extends StatefulWidget {
 class ConvoListState extends State<ConvoList> {
   String defaultConvoPic =
       "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
-  late final AuthService authService;
-
-  @override
-  void initState() {
-    super.initState();
-    authService = AuthService(FirebaseAuth.instance);
-  }
 
   //stream for user profile picture
   Stream<String> streamUserProfilePic(String userId) {
@@ -40,45 +31,16 @@ class ConvoListState extends State<ConvoList> {
         .map((snapshot) => snapshot.data()?['profilepicture'] ?? '');
   }
 
+  //get current user
+  User user = FirebaseAuth.instance.currentUser!;
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: authService.authStateChanges,
-      builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            color: Colors.transparent,
-          );
-        } else {
-          User? user = snapshot.data;
-          if (user != null) {
-            return buildUserInterface(user, context);
-          } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // Your navigation action
-              Navigator.of(context).pushReplacement(
-                CupertinoPageRoute(builder: (context) => const Login()),
-              );
-            });
-
-            return const SizedBox
-                .shrink(); // This won't actually render, since we're navigating away.
-          }
-        }
-      },
-    );
+    return buildUserInterface(user, context);
   }
 
   Widget buildUserInterface(User user, BuildContext context) {
-// get screen width and height
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    //get 1% of screen width and height for sizing widgets
-    // ignore: unused_local_variable
-    double screenWidthUnit = screenWidth * 0.01;
-    // ignore: unused_local_variable
-    double screenHeightUnit = screenHeight * 0.01;
-
+    //stream for conversations
     Stream<QuerySnapshot> conversationsStream = FirebaseFirestore.instance
         .collection('conversations')
         .where('members',
@@ -90,9 +52,8 @@ class ConvoListState extends State<ConvoList> {
         .snapshots();
 
     return CupertinoPageScaffold(
-      //top menu bar
       navigationBar: CupertinoNavigationBar(
-        //buttons on the right side of the top menu bar
+        //buttons on the left side of the top menu bar
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -105,7 +66,6 @@ class ConvoListState extends State<ConvoList> {
               onPressed: () {
                 //show modal bottom sheet: add to convo (friends list)
                 showCupertinoModalBottomSheet(
-                  elevation: 20,
                   context: context,
                   builder: (context) => FriendsList(
                     userId: user.uid,
@@ -130,6 +90,7 @@ class ConvoListState extends State<ConvoList> {
           ],
         ),
 
+        //go to current user profile page
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

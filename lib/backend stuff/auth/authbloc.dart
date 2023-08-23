@@ -6,12 +6,6 @@ import 'authstate.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService _authService;
 
-  @override
-  void onTransition(Transition<AuthEvent, AuthState> transition) {
-    print(transition);
-    super.onTransition(transition);
-  }
-
   AuthBloc({required AuthService authService})
       : _authService = authService,
         super(AuthInitial()) {
