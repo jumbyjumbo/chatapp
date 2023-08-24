@@ -53,6 +53,7 @@ class ConvoListState extends State<ConvoList> {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        backgroundColor: Colors.transparent,
         //buttons on the left side of the top menu bar
         leading: Row(
           mainAxisSize: MainAxisSize.min,
@@ -91,37 +92,31 @@ class ConvoListState extends State<ConvoList> {
         ),
 
         //go to current user profile page
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            //profile button
-            GestureDetector(
-              onTap: () {
-                // Go to profile page
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                      builder: (context) => ProfilePage(
-                            userId: user.uid,
-                          )),
+        trailing: GestureDetector(
+          onTap: () {
+            // Go to profile page
+            Navigator.push(
+              context,
+              CupertinoPageRoute(
+                  builder: (context) => ProfilePage(
+                        userId: user.uid,
+                      )),
+            );
+          },
+          child: StreamBuilder<String>(
+            stream: streamUserProfilePic(user.uid),
+            builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const SizedBox.shrink();
+              } else {
+                return CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.transparent,
+                  backgroundImage: NetworkImage(snapshot.data!),
                 );
-              },
-              child: StreamBuilder<String>(
-                stream: streamUserProfilePic(user.uid),
-                builder:
-                    (BuildContext context, AsyncSnapshot<String> snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    return CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      backgroundImage: NetworkImage(snapshot.data!),
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
+              }
+            },
+          ),
         ),
       ),
 

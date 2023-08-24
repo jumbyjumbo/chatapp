@@ -65,6 +65,7 @@ class ProfilePageState extends State<ProfilePage> {
           return CupertinoPageScaffold(
               //app bar
               navigationBar: CupertinoNavigationBar(
+                  backgroundColor: Colors.transparent,
                   //display user name
                   middle: FittedBox(
                     child: Text(
