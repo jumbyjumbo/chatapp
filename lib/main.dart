@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'backend stuff/auth/authbloc.dart';
 import 'backend stuff/auth/authevent.dart';
 import 'backend stuff/auth/authstate.dart';
+import 'backend stuff/convolist/convolistbloc.dart';
 import 'backend stuff/firebase_options.dart';
 import 'backend stuff/auth/authservice.dart';
 import 'pages/login.dart';
@@ -92,13 +93,18 @@ class _MyAppState extends State<MyApp> {
         ),
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
+            //auth states and what to do with them
             switch (state.runtimeType) {
               case Unauthenticated:
                 return const Login();
               case UsernameNotSet:
                 return const UsernameSelection();
               case Authenticated:
-                return const ConvoList();
+                return BlocProvider(
+                  create: (context) =>
+                      ConvoListBloc(FirebaseAuth.instance.currentUser!),
+                  child: const ConvoList(),
+                );
               default:
                 return const SizedBox.shrink();
             }
