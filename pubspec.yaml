@@ -24,7 +24,6 @@ dependencies:
   image_picker_for_web: ^3.0.0
   modal_bottom_sheet: ^3.0.0-pre
   path: ^1.8.3
-  peanut: ^5.0.0
   transparent_image: ^2.0.1
 
 dev_dependencies:

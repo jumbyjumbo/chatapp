@@ -14,22 +14,20 @@ class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
     on<ConvoListNewData>(_newConvoData);
   }
 
-  // Handles LoadConvoList event
   Future<void> _loadConvoList(
       LoadConvoList event, Emitter<ConvoListState> emit) async {
     emit(ConvoListLoading());
+
     _subscription = FirebaseFirestore.instance
         .collection('conversations')
         .where('members', arrayContains: user.uid)
         .orderBy('lastmessagetimestamp', descending: true)
         .snapshots()
         .listen((snapshot) {
-      final conversations = snapshot.docs;
-      add(ConvoListNewData(conversations)); // Trigger internal event
+      emit(ConvoListLoaded(snapshot.docs));
     });
   }
 
-  // Handles ConvoListNewData event
   Future<void> _newConvoData(
       ConvoListNewData event, Emitter<ConvoListState> emit) async {
     emit(ConvoListLoaded(event.conversations));

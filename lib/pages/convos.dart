@@ -44,7 +44,7 @@ class ConvoListState extends State<ConvoList> {
   @override
   void initState() {
     super.initState();
-    convoListBloc = BlocProvider.of<ConvoListBloc>(context);
+    convoListBloc = BlocProvider.of(context) as ConvoListBloc;
     convoListBloc.add(LoadConvoList());
   }
 
@@ -127,12 +127,14 @@ class ConvoListState extends State<ConvoList> {
         ),
 
         //convo list
-        child: BlocBuilder(
+        child: BlocBuilder<ConvoListBloc, ConvoListState>(
+          bloc: convoListBloc,
           builder: (context, state) {
             if (state is ConvoListLoading) {
               return const SizedBox.shrink();
             } else if (state is ConvoListLoaded) {
-              List<QueryDocumentSnapshot> conversations = (state).conversations;
+              List<QueryDocumentSnapshot> conversations =
+                  (state as ConvoListLoaded).conversations;
 
               return ListView.builder(
                 itemCount: conversations.length,

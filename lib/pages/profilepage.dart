@@ -39,7 +39,7 @@ class ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pop(); // Pop the page off the stack
       });
       return const SizedBox.shrink();
