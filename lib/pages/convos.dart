@@ -39,38 +39,23 @@ class ConvoListState extends State<ConvoList> {
   User user = FirebaseAuth.instance.currentUser!;
 
   //bloc for convo list
-  late ConvoListBloc _convoListBloc;
+  late ConvoListBloc convoListBloc;
 
   @override
   void initState() {
     super.initState();
-    _convoListBloc = ConvoListBloc(user);
-    _convoListBloc.add(LoadConvoList());
+    convoListBloc = BlocProvider.of<ConvoListBloc>(context);
+    convoListBloc.add(LoadConvoList());
   }
 
   @override
   void dispose() {
-    _convoListBloc.close();
+    convoListBloc.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return buildUserInterface(user, context);
-  }
-
-  Widget buildUserInterface(User user, BuildContext context) {
-    //stream for conversations
-    Stream<QuerySnapshot> conversationsStream = FirebaseFirestore.instance
-        .collection('conversations')
-        .where('members',
-            arrayContains: user
-                .uid) // Filter conversations where the user is a participant
-        .orderBy('lastmessagetimestamp',
-            descending:
-                true) // Order conversations by last message timestamp in descending order
-        .snapshots();
-
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
           backgroundColor: Colors.transparent,
@@ -142,13 +127,12 @@ class ConvoListState extends State<ConvoList> {
         ),
 
         //convo list
-        child: BlocBuilder<ConvoListBloc, ConvoListState>(
+        child: BlocBuilder(
           builder: (context, state) {
             if (state is ConvoListLoading) {
               return const SizedBox.shrink();
             } else if (state is ConvoListLoaded) {
-              List<QueryDocumentSnapshot> conversations =
-                  (state as ConvoListLoaded).conversations;
+              List<QueryDocumentSnapshot> conversations = (state).conversations;
 
               return ListView.builder(
                 itemCount: conversations.length,
