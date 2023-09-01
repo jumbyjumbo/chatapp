@@ -129,9 +129,7 @@ class ConvoListState extends State<ConvoList> {
         //convo list
         child: BlocBuilder<ConvoListBloc, ConvoListState>(
           builder: (context, state) {
-            if (state is ConvoListLoading) {
-              return const SizedBox.shrink();
-            } else if (state is ConvoListLoaded) {
+            if (state is ConvoListLoaded) {
               List<QueryDocumentSnapshot> conversations =
                   (state as ConvoListLoaded).conversations;
 

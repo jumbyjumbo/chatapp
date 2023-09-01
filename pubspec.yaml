@@ -7,6 +7,8 @@ environment:
 
 dependencies:
   async: ^2.11.0
+  bloc: ^8.1.2
+  bloc_concurrency: ^0.2.2
   cloud_firestore: ^4.8.1
   cupertino_icons: ^1.0.2
   equatable: ^2.0.5
