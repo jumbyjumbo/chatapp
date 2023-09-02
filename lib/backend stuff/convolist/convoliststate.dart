@@ -19,15 +19,6 @@ class ConvoListLoaded extends ConvoListState {
   List<Object?> get props => [conversations];
 }
 
-class ConvoListError extends ConvoListState {
-  final String message;
-
-  ConvoListError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
 class ConvoUpdated extends ConvoListState {
   final String convoId;
   final Map<String, dynamic> updatedData;
