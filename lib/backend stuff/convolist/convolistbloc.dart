@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'convoliststate.dart';
-import 'package:bloc_concurrency/bloc_concurrency.dart';
 
 class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
   final User user;
@@ -13,13 +12,9 @@ class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
   ConvoListBloc(this.user) : super(ConvoListInitial()) {
     on<LoadConvoList>(
       _loadConvoList,
-      transformer:
-          sequential(), // optional, if you want to process these events sequentially
     );
     on<ConvoListNewData>(
       _newConvoData,
-      transformer:
-          sequential(), // optional, if you want to process these events sequentially
     );
   }
 
