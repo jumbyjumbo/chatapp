@@ -15,16 +15,14 @@ import 'convoinfo.dart';
 import 'createconvo.dart';
 import 'profilepage.dart';
 
-class ConvoList extends StatefulWidget {
-  const ConvoList({Key? key}) : super(key: key);
-
-  @override
-  ConvoListState createState() => ConvoListState();
-}
-
-class ConvoListState extends State<ConvoList> {
-  String defaultConvoPic =
+class ConvoList extends StatelessWidget {
+  final String defaultConvoPic =
       "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
+
+  //get current user
+  final User user = FirebaseAuth.instance.currentUser!;
+
+  ConvoList({super.key});
 
   //stream for user profile picture
   Stream<String> streamUserProfilePic(String userId) {
@@ -34,9 +32,6 @@ class ConvoListState extends State<ConvoList> {
         .snapshots()
         .map((snapshot) => snapshot.data()?['profilepicture'] ?? '');
   }
-
-  //get current user
-  User user = FirebaseAuth.instance.currentUser!;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +111,11 @@ class ConvoListState extends State<ConvoList> {
           //convo list
           child: BlocBuilder<ConvoListBloc, blocstate.ConvoListState>(
             builder: (context, state) {
-              if (state is blocstate.ConvoListLoaded) {
+              if (state is blocstate.ConvoListInitial) {
+                return const SizedBox.shrink();
+              } else if (state is blocstate.ConvoListLoading) {
+                return const SizedBox.shrink();
+              } else if (state is blocstate.ConvoListLoaded) {
                 List<QueryDocumentSnapshot> conversations =
                     (state).conversations;
 
@@ -215,7 +214,6 @@ class ConvoListState extends State<ConvoList> {
                   },
                 );
               } else {
-                print('ConvoListState is not ConvoListLoaded');
                 return const SizedBox.shrink();
               }
             },

@@ -10,6 +10,7 @@ class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
   late StreamSubscription<QuerySnapshot> _subscription;
 
   ConvoListBloc(this.user) : super(ConvoListInitial()) {
+    _subscription = const Stream<QuerySnapshot>.empty().listen((_) {});
     on<LoadConvoList>(_loadConvoList);
     on<ConvoListNewData>(_newConvoData);
   }
@@ -18,14 +19,20 @@ class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
       LoadConvoList event, Emitter<ConvoListState> emit) async {
     emit(ConvoListLoading());
 
+    // Await to make sure the subscription is fully cancelled
+    await _subscription.cancel();
+
+    // Create a new subscription
     _subscription = FirebaseFirestore.instance
         .collection('conversations')
         .where('members', arrayContains: user.uid)
         .orderBy('lastmessagetimestamp', descending: true)
         .snapshots()
         .listen(
-          (snapshot) => emit(ConvoListLoaded(snapshot.docs)),
-        );
+      (snapshot) {
+        add(ConvoListNewData(snapshot.docs));
+      },
+    );
   }
 
   Future<void> _newConvoData(

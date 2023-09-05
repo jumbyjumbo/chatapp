@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> {
               case UsernameNotSet:
                 return const UsernameSelection();
               case Authenticated:
-                return const ConvoList();
+                return ConvoList();
               default:
                 return const SizedBox.shrink();
             }
