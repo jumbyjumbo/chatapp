@@ -8,7 +8,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
 import '../backend stuff/convolist/convolistbloc.dart';
 import '../backend stuff/convolist/convolistevent.dart';
-import '../backend stuff/convolist/convoliststate.dart' as blocstate;
+import '../backend stuff/convolist/convoliststate.dart';
 import '../ui stuff/convoinstance.dart';
 import 'messagingpage.dart';
 import 'convoinfo.dart';
@@ -109,13 +109,13 @@ class ConvoList extends StatelessWidget {
           ),
 
           //convo list
-          child: BlocBuilder<ConvoListBloc, blocstate.ConvoListState>(
+          child: BlocBuilder<ConvoListBloc, ConvoListState>(
             builder: (context, state) {
-              if (state is blocstate.ConvoListInitial) {
+              if (state is ConvoListInitial) {
                 return const SizedBox.shrink();
-              } else if (state is blocstate.ConvoListLoading) {
+              } else if (state is ConvoListLoading) {
                 return const SizedBox.shrink();
-              } else if (state is blocstate.ConvoListLoaded) {
+              } else if (state is ConvoListLoaded) {
                 List<QueryDocumentSnapshot> conversations =
                     (state).conversations;
 
