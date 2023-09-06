@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'backend stuff/auth/authbloc.dart';
 import 'backend stuff/auth/authevent.dart';
 import 'backend stuff/auth/authstate.dart';
+import 'backend stuff/convolist/convolistbloc.dart';
+import 'backend stuff/convolist/convolistevent.dart';
 import 'backend stuff/firebase_options.dart';
 import 'backend stuff/auth/authservice.dart';
 import 'pages/login.dart';
