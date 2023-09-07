@@ -16,7 +16,7 @@ class ConvoInstanceLoaded extends ConvoInstanceState {
   final String convoName;
   // Add other relevant data
 
-  ConvoInstanceLoaded(this.convoPicUrl, this.convoName);
+  const ConvoInstanceLoaded(this.convoPicUrl, this.convoName);
 
   @override
   List<Object> get props => [convoPicUrl, convoName];

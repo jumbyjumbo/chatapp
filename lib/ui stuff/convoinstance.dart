@@ -6,7 +6,7 @@ import 'package:async/async.dart';
 
 import 'convostatusdot.dart';
 
-class ConvoInstance extends StatefulWidget {
+class ConvoInstance extends StatelessWidget {
   final Map<String, dynamic> convoData;
   final String conversationId;
   final String userId;
@@ -18,11 +18,9 @@ class ConvoInstance extends StatefulWidget {
     required this.userId,
   });
 
-  @override
-  State<ConvoInstance> createState() => ConvoInstanceState();
-}
+  final String defaultConvoPic =
+      "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
 
-class ConvoInstanceState extends State<ConvoInstance> {
   //
   Stream<List<Map<String, dynamic>>> membersDataStream(
       List<String> memberIds, String currentUserId) {
@@ -59,7 +57,7 @@ class ConvoInstanceState extends State<ConvoInstance> {
       // get the last sent picture message if any
       QuerySnapshot lastImageSentSnapshot = await FirebaseFirestore.instance
           .collection('conversations')
-          .doc(widget.conversationId)
+          .doc(conversationId)
           .collection("messages")
           .where('type', isEqualTo: 'image')
           .orderBy('timestamp', descending: true)
@@ -92,9 +90,6 @@ class ConvoInstanceState extends State<ConvoInstance> {
     }
   }
 
-  String defaultConvoPic =
-      "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
-
   Future<String> getUserName(String uid) async {
     final userDocument =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -106,7 +101,7 @@ class ConvoInstanceState extends State<ConvoInstance> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: FutureBuilder<Map<String, String>>(
-        future: setConvoPicAndName(widget.convoData, widget.userId),
+        future: setConvoPicAndName(convoData, userId),
         builder: (context, snapshot) {
           //if snapshot is loading or has no data, show nothing
           if (snapshot.connectionState == ConnectionState.waiting ||
@@ -165,13 +160,13 @@ class ConvoInstanceState extends State<ConvoInstance> {
 
           // Get the "hasread" field from the conversation data
           List<String> hasReadUsers =
-              widget.convoData['hasread']?.cast<String>() ?? [];
+              convoData['hasread']?.cast<String>() ?? [];
 
           // Check if the current user has read the message
-          bool userHasRead = hasReadUsers.contains(widget.userId);
+          bool userHasRead = hasReadUsers.contains(userId);
 
           // Get the last message id
-          String? lastMessageId = widget.convoData['lastmessage'] as String?;
+          String? lastMessageId = convoData['lastmessage'] as String?;
 
           //show convo instance
           return Row(
@@ -190,8 +185,7 @@ class ConvoInstanceState extends State<ConvoInstance> {
                       //status dot to check if a member is online
                       child: StreamBuilder<List<Map<String, dynamic>>>(
                         stream: membersDataStream(
-                            widget.convoData['members'].cast<String>(),
-                            widget.userId),
+                            convoData['members'].cast<String>(), userId),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return ConvoStatusDot(membersData: snapshot.data!);
@@ -234,7 +228,7 @@ class ConvoInstanceState extends State<ConvoInstance> {
                       //stream the last message's data
                       stream: FirebaseFirestore.instance
                           .collection('conversations')
-                          .doc(widget.conversationId)
+                          .doc(conversationId)
                           .collection("messages")
                           .doc(lastMessageId)
                           .snapshots(),
@@ -285,9 +279,8 @@ class ConvoInstanceState extends State<ConvoInstance> {
 
                               //message sender displayed if group chat
                               String prefix =
-                                  (widget.convoData['members'].length > 2 &&
-                                          lastMessageData['sender'] !=
-                                              widget.userId)
+                                  (convoData['members'].length > 2 &&
+                                          lastMessageData['sender'] != userId)
                                       ? "$senderName: "
                                       : "";
 

@@ -10,7 +10,7 @@ abstract class ConvoInstanceEvent extends Equatable {
 class LoadConvoInstance extends ConvoInstanceEvent {
   final String convoId;
 
-  LoadConvoInstance(this.convoId);
+  const LoadConvoInstance(this.convoId);
 
   @override
   List<Object> get props => [convoId];
@@ -19,5 +19,5 @@ class LoadConvoInstance extends ConvoInstanceEvent {
 class ConvoInstanceNewData extends ConvoInstanceEvent {
   final Map<String, dynamic> convoData;
 
-  ConvoInstanceNewData(this.convoData);
+  const ConvoInstanceNewData(this.convoData);
 }
