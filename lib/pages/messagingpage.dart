@@ -555,7 +555,7 @@ class ImageSelect extends StatelessWidget {
           .collection('conversations')
           .doc(conversationId)
           .update({
-        'lastMessage': value.id,
+        'lastmessage': value.id,
         'lastmessagetimestamp': now,
         'hasread': viewing,
       });

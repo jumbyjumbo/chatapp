@@ -16,8 +16,38 @@ class LoadConvoInstance extends ConvoInstanceEvent {
   List<Object> get props => [convoId];
 }
 
-class ConvoInstanceNewData extends ConvoInstanceEvent {
-  final Map<String, dynamic> convoData;
+class ConvoNameChanged extends ConvoInstanceEvent {
+  final String newName;
 
-  const ConvoInstanceNewData(this.convoData);
+  const ConvoNameChanged(this.newName);
+
+  @override
+  List<Object> get props => [newName];
+}
+
+class ConvoPicChanged extends ConvoInstanceEvent {
+  final String newPicUrl;
+
+  const ConvoPicChanged(this.newPicUrl);
+
+  @override
+  List<Object> get props => [newPicUrl];
+}
+
+class LastMessageSent extends ConvoInstanceEvent {
+  final String newLastMessage;
+
+  const LastMessageSent(this.newLastMessage);
+
+  @override
+  List<Object> get props => [newLastMessage];
+}
+
+class LastMessageReadStatusChanged extends ConvoInstanceEvent {
+  final bool isRead;
+
+  const LastMessageReadStatusChanged(this.isRead);
+
+  @override
+  List<Object> get props => [isRead];
 }

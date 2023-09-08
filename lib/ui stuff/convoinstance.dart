@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:async/async.dart';
-
 import 'convostatusdot.dart';
 
 class ConvoInstance extends StatelessWidget {
@@ -21,7 +20,7 @@ class ConvoInstance extends StatelessWidget {
   final String defaultConvoPic =
       "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
 
-  //
+  //get list of users
   Stream<List<Map<String, dynamic>>> membersDataStream(
       List<String> memberIds, String currentUserId) {
     // Remove the current user from the list
