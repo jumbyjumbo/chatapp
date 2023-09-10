@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
+import '../backend stuff/convoinstance/convoinstancebloc.dart';
 import '../backend stuff/convolist/convolistbloc.dart';
 import '../backend stuff/convolist/convolistevent.dart';
 import '../backend stuff/convolist/convoliststate.dart';
@@ -203,10 +204,16 @@ class ConvoList extends StatelessWidget {
                           ),
 
                           //convo widget
-                          child: ConvoInstance(
-                            convoData: conversationData,
-                            conversationId: conversationDoc.id,
-                            userId: user.uid,
+                          child: BlocProvider(
+                            create: (context) => ConvoInstanceBloc(
+                                BlocProvider.of<ConvoListBloc>(context),
+                                conversationDoc.id,
+                                user.uid),
+                            child: ConvoInstance(
+                              convoData: conversationData,
+                              conversationId: conversationDoc.id,
+                              userId: user.uid,
+                            ),
                           ),
                         ),
                       ),

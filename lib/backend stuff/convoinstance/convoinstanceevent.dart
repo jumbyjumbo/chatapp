@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ConvoInstanceEvent extends Equatable {
@@ -16,22 +17,18 @@ class LoadConvoInstance extends ConvoInstanceEvent {
   List<Object> get props => [convoId];
 }
 
+//when convo name is changed
 class ConvoNameChanged extends ConvoInstanceEvent {
-  final String newName;
+  final QueryDocumentSnapshot<Object?> convoData;
 
-  const ConvoNameChanged(this.newName);
-
-  @override
-  List<Object> get props => [newName];
+  const ConvoNameChanged(this.convoData);
 }
 
+//when convo pic is changed
 class ConvoPicChanged extends ConvoInstanceEvent {
-  final String newPicUrl;
+  final QueryDocumentSnapshot<Object?> convoData;
 
-  const ConvoPicChanged(this.newPicUrl);
-
-  @override
-  List<Object> get props => [newPicUrl];
+  const ConvoPicChanged(this.convoData);
 }
 
 class LastMessageSent extends ConvoInstanceEvent {
