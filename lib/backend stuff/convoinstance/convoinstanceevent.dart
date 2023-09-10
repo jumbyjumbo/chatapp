@@ -8,14 +8,7 @@ abstract class ConvoInstanceEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadConvoInstance extends ConvoInstanceEvent {
-  final String convoId;
-
-  const LoadConvoInstance(this.convoId);
-
-  @override
-  List<Object> get props => [convoId];
-}
+class LoadConvoInstance extends ConvoInstanceEvent {}
 
 //when convo name is changed
 class ConvoNameChanged extends ConvoInstanceEvent {

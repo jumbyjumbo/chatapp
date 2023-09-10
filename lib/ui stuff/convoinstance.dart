@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_time_ago/get_time_ago.dart';
 import 'package:async/async.dart';
 import '../backend stuff/convoinstance/convoinstancebloc.dart';
 import '../backend stuff/convoinstance/convoinstancestate.dart';
@@ -23,7 +22,7 @@ class ConvoInstance extends StatelessWidget {
   final String defaultConvoPic =
       "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
 
-  //get list of users
+  //get list of users for dot online status
   Stream<List<Map<String, dynamic>>> membersDataStream(
       List<String> memberIds, String currentUserId) {
     // Remove the current user from the list

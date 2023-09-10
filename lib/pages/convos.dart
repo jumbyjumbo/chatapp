@@ -7,6 +7,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
 import '../backend stuff/convoinstance/convoinstancebloc.dart';
+import '../backend stuff/convoinstance/convoinstanceevent.dart';
 import '../backend stuff/convolist/convolistbloc.dart';
 import '../backend stuff/convolist/convolistevent.dart';
 import '../backend stuff/convolist/convoliststate.dart';
@@ -17,9 +18,6 @@ import 'createconvo.dart';
 import 'profilepage.dart';
 
 class ConvoList extends StatelessWidget {
-  final String defaultConvoPic =
-      "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
-
   //get current user
   final User user = FirebaseAuth.instance.currentUser!;
 
@@ -208,7 +206,9 @@ class ConvoList extends StatelessWidget {
                             create: (context) => ConvoInstanceBloc(
                                 BlocProvider.of<ConvoListBloc>(context),
                                 conversationDoc.id,
-                                user.uid),
+                                user.uid)
+                            //..add(LoadConvoInstance())
+                            ,
                             child: ConvoInstance(
                               convoData: conversationData,
                               conversationId: conversationDoc.id,

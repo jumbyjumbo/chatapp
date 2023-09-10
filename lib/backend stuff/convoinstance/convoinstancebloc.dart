@@ -28,14 +28,13 @@ class ConvoInstanceBloc extends Bloc<ConvoInstanceEvent, ConvoInstanceState> {
         final convoData =
             state.conversations.firstWhere((convo) => convo.id == convoId);
 
-        // Use the data to update the bloc state
         // Trigger the appropriate events based on the data received
 
         if (convoName != convoData['name']) {
           add(ConvoNameChanged(convoData));
         }
 
-        if (convoPicUrl != convoData['convopic']) {
+        if (convoPicUrl != convoData['convoPicture']) {
           add(ConvoPicChanged(convoData));
         }
 
@@ -50,11 +49,15 @@ class ConvoInstanceBloc extends Bloc<ConvoInstanceEvent, ConvoInstanceState> {
       }
     });
 
+    on<LoadConvoInstance>(loadConvoInstance);
     on<ConvoNameChanged>(convoNameChanged);
     on<ConvoPicChanged>(convoPicChanged);
     on<LastMessageSent>(lastMessageSent);
     on<LastMessageReadStatusChanged>(lastMessageReadStatusChanged);
   }
+
+  Future<void> loadConvoInstance(
+      LoadConvoInstance event, Emitter<ConvoInstanceState> emit) async {}
 
   Future<void> convoNameChanged(
       ConvoNameChanged event, Emitter<ConvoInstanceState> emit) async {
@@ -81,7 +84,7 @@ class ConvoInstanceBloc extends Bloc<ConvoInstanceEvent, ConvoInstanceState> {
       ConvoPicChanged event, Emitter<ConvoInstanceState> emit) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final convoData = event.convoData;
-    String newPicUrl = convoData["convopic"] ?? defaultConvoPic;
+    String newPicUrl = convoData["convoPicture"] ?? defaultConvoPic;
 
     QuerySnapshot lastImageSentSnapshot = await firestore
         .collection('conversations')
