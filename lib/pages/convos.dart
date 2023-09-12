@@ -5,11 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:pleasepleasepleaseplease/backend%20stuff/convoinstance/convoinstanceevent.dart';
 import 'package:pleasepleasepleaseplease/pages/userslist.dart';
 import '../backend stuff/convoinstance/convoinstancebloc.dart';
-import '../backend stuff/convoinstance/convoinstanceevent.dart';
 import '../backend stuff/convolist/convolistbloc.dart';
-import '../backend stuff/convolist/convolistevent.dart';
 import '../backend stuff/convolist/convoliststate.dart';
 import '../ui stuff/convoinstance.dart';
 import 'messagingpage.dart';
@@ -35,7 +34,7 @@ class ConvoList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ConvoListBloc(user)..add(LoadConvoList()),
+      create: (context) => ConvoListBloc(user),
       child: CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(
             backgroundColor: Colors.transparent,
@@ -110,11 +109,7 @@ class ConvoList extends StatelessWidget {
           //convo list
           child: BlocBuilder<ConvoListBloc, ConvoListState>(
             builder: (context, state) {
-              if (state is ConvoListInitial) {
-                return const SizedBox.shrink();
-              } else if (state is ConvoListLoading) {
-                return const SizedBox.shrink();
-              } else if (state is ConvoListLoaded) {
+              if (state is ConvoListLoaded) {
                 List<QueryDocumentSnapshot> conversations =
                     (state).conversations;
 
@@ -126,89 +121,86 @@ class ConvoList extends StatelessWidget {
                     Map<String, dynamic> conversationData =
                         conversationDoc.data() as Map<String, dynamic>;
 
-                    return GestureDetector(
-                      onTap: () {
-                        // Open conversation
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Messagingpage(
-                              conversationId: conversationDoc.id,
+                    return BlocProvider(
+                      create: (context) => ConvoInstanceBloc(
+                          convoId: conversationDoc.id, userId: user.uid),
+                      child: GestureDetector(
+                        onTap: () {
+                          // Open conversation
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Messagingpage(
+                                conversationId: conversationDoc.id,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          //border
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey,
+                                width: 0.5,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        //border
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Colors.grey,
-                              width: 0.5,
+                          child: Slidable(
+                            key: Key(conversationDoc.id),
+
+                            //options on the left of convo (pin, settings page)
+                            startActionPane: ActionPane(
+                              extentRatio: 0.2,
+                              motion: const ScrollMotion(),
+                              children: <SlidableAction>[
+                                //get convo info
+                                SlidableAction(
+                                  //same as app theme primary color
+                                  backgroundColor:
+                                      CupertinoTheme.of(context).primaryColor,
+                                  icon: CupertinoIcons.info_circle_fill,
+                                  onPressed: (context) {
+                                    //open convo info page
+                                    showCupertinoModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return ConvoInfoPage(
+                                          conversationId:
+                                              conversations[index].id,
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                        child: Slidable(
-                          key: Key(conversationDoc.id),
 
-                          //options on the left of convo (pin, settings page)
-                          startActionPane: ActionPane(
-                            extentRatio: 0.2,
-                            motion: const ScrollMotion(),
-                            children: <SlidableAction>[
-                              //get convo info
-                              SlidableAction(
-                                //same as app theme primary color
-                                backgroundColor:
-                                    CupertinoTheme.of(context).primaryColor,
-                                icon: CupertinoIcons.info_circle_fill,
-                                onPressed: (context) {
-                                  //open convo info page
-                                  showCupertinoModalBottomSheet(
-                                    context: context,
-                                    builder: (context) {
-                                      return ConvoInfoPage(
-                                        conversationId: conversations[index].id,
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+                            //options on the right of convo (archive, leave,)
+                            endActionPane: ActionPane(
+                              extentRatio: 0.2,
+                              motion: const ScrollMotion(),
+                              children: <SlidableAction>[
+                                //leave convo
+                                SlidableAction(
+                                  backgroundColor: Colors.red,
+                                  icon: CupertinoIcons
+                                      .person_crop_circle_fill_badge_xmark,
+                                  onPressed: (context) {
+                                    // remove current user from the conversation
+                                    FirebaseFirestore.instance
+                                        .collection('conversations')
+                                        .doc(conversationDoc.id)
+                                        .update({
+                                      'members':
+                                          FieldValue.arrayRemove([user.uid])
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
 
-                          //options on the right of convo (archive, leave,)
-                          endActionPane: ActionPane(
-                            extentRatio: 0.2,
-                            motion: const ScrollMotion(),
-                            children: <SlidableAction>[
-                              //leave convo
-                              SlidableAction(
-                                backgroundColor: Colors.red,
-                                icon: CupertinoIcons
-                                    .person_crop_circle_fill_badge_xmark,
-                                onPressed: (context) {
-                                  // remove current user from the conversation
-                                  FirebaseFirestore.instance
-                                      .collection('conversations')
-                                      .doc(conversationDoc.id)
-                                      .update({
-                                    'members':
-                                        FieldValue.arrayRemove([user.uid])
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-
-                          //convo widget
-                          child: BlocProvider(
-                            create: (context) => ConvoInstanceBloc(
-                                BlocProvider.of<ConvoListBloc>(context),
-                                conversationDoc.id,
-                                user.uid)
-                            //..add(LoadConvoInstance())
-                            ,
+                            //convo widget
                             child: ConvoInstance(
                               convoData: conversationData,
                               conversationId: conversationDoc.id,

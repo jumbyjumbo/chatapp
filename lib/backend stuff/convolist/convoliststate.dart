@@ -18,13 +18,3 @@ class ConvoListLoaded extends ConvoListState {
   @override
   List<Object?> get props => [conversations];
 }
-
-class ConvoUpdated extends ConvoListState {
-  final String convoId;
-  final Map<String, dynamic> updatedData;
-
-  ConvoUpdated(this.convoId, this.updatedData);
-
-  @override
-  List<Object?> get props => [convoId, updatedData];
-}

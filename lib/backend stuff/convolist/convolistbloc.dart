@@ -7,42 +7,26 @@ import 'convoliststate.dart';
 
 class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
   final User user;
-  late StreamSubscription<QuerySnapshot> subscription;
+  late StreamSubscription<QuerySnapshot> convoListStream;
 
   ConvoListBloc(this.user) : super(ConvoListInitial()) {
-    subscription = const Stream<QuerySnapshot>.empty().listen((_) {});
-    on<LoadConvoList>(loadConvoList);
-    on<ConvoListNewData>(newConvoData);
-  }
-
-  Future<void> loadConvoList(
-      LoadConvoList event, Emitter<ConvoListState> emit) async {
-    emit(ConvoListLoading());
-
-    // Await to make sure the subscription is fully cancelled
-    await subscription.cancel();
-
-    // Create a new subscription
-    subscription = FirebaseFirestore.instance
+    //get list of convos
+    convoListStream = FirebaseFirestore.instance
         .collection('conversations')
         .where('members', arrayContains: user.uid)
         .orderBy('lastmessagetimestamp', descending: true)
         .snapshots()
         .listen(
       (snapshot) {
-        add(ConvoListNewData(snapshot.docs));
+        add(LoadConvoList(snapshot.docs));
       },
     );
+
+    on<LoadConvoList>(loadConvoList);
   }
 
-  Future<void> newConvoData(
-      ConvoListNewData event, Emitter<ConvoListState> emit) async {
-    emit(ConvoListLoaded(event.conversations));
-  }
-
-  @override
-  Future<void> close() {
-    subscription.cancel();
-    return super.close();
+  Future<void> loadConvoList(
+      LoadConvoList event, Emitter<ConvoListState> emit) async {
+    emit(ConvoListLoaded(event.convos));
   }
 }

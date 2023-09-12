@@ -8,36 +8,11 @@ abstract class ConvoInstanceEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadConvoInstance extends ConvoInstanceEvent {}
+class LoadConvoInstance extends ConvoInstanceEvent {
+  final Map<String, dynamic> convoData;
 
-//when convo name is changed
-class ConvoNameChanged extends ConvoInstanceEvent {
-  final QueryDocumentSnapshot<Object?> convoData;
-
-  const ConvoNameChanged(this.convoData);
-}
-
-//when convo pic is changed
-class ConvoPicChanged extends ConvoInstanceEvent {
-  final QueryDocumentSnapshot<Object?> convoData;
-
-  const ConvoPicChanged(this.convoData);
-}
-
-class LastMessageSent extends ConvoInstanceEvent {
-  final String newLastMessage;
-
-  const LastMessageSent(this.newLastMessage);
+  LoadConvoInstance(this.convoData);
 
   @override
-  List<Object> get props => [newLastMessage];
-}
-
-class LastMessageReadStatusChanged extends ConvoInstanceEvent {
-  final bool isRead;
-
-  const LastMessageReadStatusChanged(this.isRead);
-
-  @override
-  List<Object> get props => [isRead];
+  List<Object> get props => [convoData];
 }

@@ -6,13 +6,11 @@ abstract class ConvoListEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadConvoList extends ConvoListEvent {}
+class LoadConvoList extends ConvoListEvent {
+  final List<QueryDocumentSnapshot> convos;
 
-class ConvoListNewData extends ConvoListEvent {
-  final List<QueryDocumentSnapshot> conversations;
-
-  ConvoListNewData(this.conversations);
+  LoadConvoList(this.convos);
 
   @override
-  List<Object?> get props => [conversations];
+  List<Object> get props => [convos];
 }

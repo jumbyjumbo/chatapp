@@ -19,9 +19,6 @@ class ConvoInstance extends StatelessWidget {
     required this.userId,
   });
 
-  final String defaultConvoPic =
-      "https://raw.githubusercontent.com/jumbyjumbo/images/main/groupchat.jpg";
-
   //get list of users for dot online status
   Stream<List<Map<String, dynamic>>> membersDataStream(
       List<String> memberIds, String currentUserId) {
@@ -51,7 +48,6 @@ class ConvoInstance extends StatelessWidget {
       child: BlocBuilder<ConvoInstanceBloc, ConvoInstanceState>(
         builder: (context, state) {
           if (state is ConvoInstanceInitial) {
-            //placeholder convo instance
             return Row(
               children: [
                 //convo picture
@@ -157,6 +153,12 @@ class ConvoInstance extends StatelessWidget {
                       //last message
                       Text(
                         state.lastMessage,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: state.isLastMessageRead
+                              ? Colors.grey
+                              : CupertinoTheme.of(context).primaryColor,
+                        ),
                       )
                     ],
                   ),
