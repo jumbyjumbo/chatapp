@@ -7,7 +7,7 @@ abstract class ConvoListEvent extends Equatable {
 }
 
 class LoadConvoList extends ConvoListEvent {
-  final List<QueryDocumentSnapshot> convos;
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> convos;
 
   LoadConvoList(this.convos);
 

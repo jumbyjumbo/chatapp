@@ -110,16 +110,15 @@ class ConvoList extends StatelessWidget {
           child: BlocBuilder<ConvoListBloc, ConvoListState>(
             builder: (context, state) {
               if (state is ConvoListLoaded) {
-                List<QueryDocumentSnapshot> conversations =
-                    (state).conversations;
+                List<QueryDocumentSnapshot<Map<String, dynamic>>>
+                    conversations = state.convos;
 
                 return ListView.builder(
                   itemCount: conversations.length,
                   itemBuilder: (BuildContext context, int index) {
-                    QueryDocumentSnapshot conversationDoc =
-                        conversations[index];
-                    Map<String, dynamic> conversationData =
-                        conversationDoc.data() as Map<String, dynamic>;
+                    //get convo data
+                    final conversationDoc = conversations[index];
+                    final conversationData = conversationDoc.data();
 
                     return BlocProvider(
                       create: (context) => ConvoInstanceBloc(

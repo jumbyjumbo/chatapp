@@ -11,10 +11,10 @@ class ConvoListInitial extends ConvoListState {}
 class ConvoListLoading extends ConvoListState {}
 
 class ConvoListLoaded extends ConvoListState {
-  final List<QueryDocumentSnapshot> conversations;
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> convos;
 
-  ConvoListLoaded(this.conversations);
+  ConvoListLoaded(this.convos);
 
   @override
-  List<Object?> get props => [conversations];
+  List<Object?> get props => [convos];
 }

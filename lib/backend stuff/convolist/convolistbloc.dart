@@ -18,15 +18,15 @@ class ConvoListBloc extends Bloc<ConvoListEvent, ConvoListState> {
         .snapshots()
         .listen(
       (snapshot) {
-        add(LoadConvoList(snapshot.docs));
+        final convos = snapshot.docs.map((doc) => doc).toList();
+        add(LoadConvoList(convos));
       },
     );
 
-    on<LoadConvoList>(loadConvoList);
-  }
+    on<LoadConvoList>((event, emit) async {
+      emit(ConvoListLoading());
 
-  Future<void> loadConvoList(
-      LoadConvoList event, Emitter<ConvoListState> emit) async {
-    emit(ConvoListLoaded(event.convos));
+      emit(ConvoListLoaded(event.convos));
+    });
   }
 }
