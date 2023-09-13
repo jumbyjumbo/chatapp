@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ConvoInstanceEvent extends Equatable {
@@ -11,7 +10,7 @@ abstract class ConvoInstanceEvent extends Equatable {
 class LoadConvoInstance extends ConvoInstanceEvent {
   final Map<String, dynamic> convoData;
 
-  LoadConvoInstance(this.convoData);
+  const LoadConvoInstance(this.convoData);
 
   @override
   List<Object> get props => [convoData];

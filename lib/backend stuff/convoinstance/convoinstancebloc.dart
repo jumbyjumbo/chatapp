@@ -27,8 +27,6 @@ class ConvoInstanceBloc extends Bloc<ConvoInstanceEvent, ConvoInstanceState> {
     on<LoadConvoInstance>(loadConvoInstance);
   }
 
-  //load the convo instance with the data from the convo list
-  // Load the convo instance with the data from the convo list
   Future<void> loadConvoInstance(
       LoadConvoInstance event, Emitter<ConvoInstanceState> emit) async {
     emit(ConvoInstanceLoading());
